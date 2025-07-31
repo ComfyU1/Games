@@ -1,0 +1,2092 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Hypothesis Fill-in-the-Blank</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        select, button {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        select {
+            background: white;
+            min-width: 120px;
+        }
+        
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+        
+        .exercise-container {
+            margin: 20px 0;
+        }
+        
+        .hypothesis {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+        }
+        
+        .hypothesis-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .drop-zone {
+            display: inline-block;
+            min-width: 100px;
+            height: 35px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 6px;
+            margin: 0 5px;
+            padding: 5px 10px;
+            background: #fff;
+            vertical-align: middle;
+            line-height: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+        
+        .drop-zone.filled {
+            background: #c6f6d5;
+            border-color: #38a169;
+        }
+        
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #edf2f7;
+            border-radius: 8px;
+        }
+        
+        .option {
+            background: #4299e1;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .option:hover {
+            background: #3182ce;
+            transform: scale(1.05);
+        }
+        
+        .option.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        .option.used {
+            background: #a0aec0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .bottom-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+        
+        .score {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #38a169;
+        }
+        
+        .explanation {
+            background: #fff5cd;
+            border: 2px solid #f6e05e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .explanation h4 {
+            color: #744210;
+            margin-top: 0;
+        }
+        
+        .explanation p {
+            color: #744210;
+            margin-bottom: 0;
+        }
+        
+        .refresh-btn {
+            background: #48bb78;
+        }
+        
+        .refresh-btn:hover {
+            background: #38a169;
+        }
+        
+        .check-btn {
+            background: #ed8936;
+        }
+        
+        .check-btn:hover {
+            background: #dd6b20;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Scientific Hypothesis Lab</h1>
+            <p class="subtitle">Drag and drop words to complete scientific hypotheses!</p>
+        </div>
+        
+        <div class="controls">
+            <select id="languageSelect">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="ar">العربية</option>
+                <option value="zh">中文</option>
+            </select>
+            
+            <select id="levelSelect">
+                <option value="basic">Basic (Ages 4-8)</option>
+                <option value="intermediate">Intermediate (Ages 8-12)</option>
+                <option value="advanced">Advanced (Ages 12-16)</option>
+            </select>
+            
+            <button onclick="generateExercises()">🎲 Generate</button>
+        </div>
+        
+        <div id="exerciseContainer"><div class="hypothesis">
+                    <div class="hypothesis-text">
+                        If we increase the <span class="drop-zone" data-index="0"></span> of a chemical reaction, the reaction rate will increase.
+                    </div>
+                    <div class="options-container">
+                        <span class="option" draggable="true" data-option="temperature">temperature</span><span class="option" draggable="true" data-option="color">color</span><span class="option" draggable="true" data-option="volume">volume</span><span class="option" draggable="true" data-option="mass">mass</span>
+                    </div>
+                    <div class="explanation" id="explanation-0">
+                        <h4>Explanation:</h4>
+                        <p>Higher temperature increases molecular motion and collision frequency, speeding up reactions.</p>
+                    </div>
+                </div><div class="hypothesis">
+                    <div class="hypothesis-text">
+                        If we add a <span class="drop-zone" data-index="1"></span> to a chemical reaction, it will speed up without being consumed.
+                    </div>
+                    <div class="options-container">
+                        <span class="option" draggable="true" data-option="catalyst">catalyst</span><span class="option" draggable="true" data-option="inhibitor">inhibitor</span><span class="option" draggable="true" data-option="solvent">solvent</span><span class="option" draggable="true" data-option="product">product</span>
+                    </div>
+                    <div class="explanation" id="explanation-1">
+                        <h4>Explanation:</h4>
+                        <p>Catalysts lower activation energy and speed up reactions without being consumed in the process.</p>
+                    </div>
+                </div><div class="hypothesis">
+                    <div class="hypothesis-text">
+                        If we decrease the <span class="drop-zone" data-index="2"></span> of a solution, more solute can dissolve.
+                    </div>
+                    <div class="options-container">
+                        <span class="option" draggable="true" data-option="temperature">temperature</span><span class="option" draggable="true" data-option="pressure">pressure</span><span class="option" draggable="true" data-option="volume">volume</span><span class="option" draggable="true" data-option="concentration">concentration</span>
+                    </div>
+                    <div class="explanation" id="explanation-2">
+                        <h4>Explanation:</h4>
+                        <p>For most solids, solubility decreases with temperature, so cooling allows more to dissolve.</p>
+                    </div>
+                </div></div>
+        
+        <div class="bottom-controls">
+            <div class="score">
+                Correct Answers: <span id="scoreCount">0</span>
+            </div>
+            <div>
+                <button class="refresh-btn" onclick="generateExercises()">🔄 Refresh</button>
+                <button class="check-btn" onclick="checkAnswers()">✓ Check Answers</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentExercises = [];
+        let score = 0;
+
+        const exercises = {
+            en: {
+                basic: [
+                    {
+                        text: "If we heat _____ to 100°C, it will boil.",
+                        options: ["water", "ice", "milk", "juice"],
+                        correct: "water",
+                        explanation: "Water boils at 100°C (212°F) at sea level. This is a fundamental property of water."
+                    },
+                    {
+                        text: "If we put _____ in the freezer, it will become solid.",
+                        options: ["water", "air", "light", "sound"],
+                        correct: "water",
+                        explanation: "Water freezes and becomes ice when cooled to 0°C (32°F)."
+                    },
+                    {
+                        text: "If we plant a _____ in soil and water it, it will grow.",
+                        options: ["seed", "rock", "toy", "paper"],
+                        correct: "seed",
+                        explanation: "Seeds contain everything needed to grow into plants when given water, soil, and sunlight."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "If we add _____ to water, it will conduct electricity better.",
+                        options: ["salt", "sugar", "oil", "sand"],
+                        correct: "salt",
+                        explanation: "Salt dissolves into ions in water, making it a better conductor of electricity."
+                    },
+                    {
+                        text: "If we increase the _____ on a gas, its volume will decrease.",
+                        options: ["pressure", "color", "smell", "taste"],
+                        correct: "pressure",
+                        explanation: "According to Boyle's Law, pressure and volume are inversely related in gases."
+                    },
+                    {
+                        text: "If we mix _____ and water, they will separate into layers.",
+                        options: ["oil", "salt", "sugar", "soap"],
+                        correct: "oil",
+                        explanation: "Oil and water don't mix because oil is less dense and hydrophobic (water-repelling)."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "If we increase the _____ of a chemical reaction, the reaction rate will increase.",
+                        options: ["temperature", "color", "volume", "mass"],
+                        correct: "temperature",
+                        explanation: "Higher temperature increases molecular motion and collision frequency, speeding up reactions."
+                    },
+                    {
+                        text: "If we add a _____ to a chemical reaction, it will speed up without being consumed.",
+                        options: ["catalyst", "inhibitor", "solvent", "product"],
+                        correct: "catalyst",
+                        explanation: "Catalysts lower activation energy and speed up reactions without being consumed in the process."
+                    },
+                    {
+                        text: "If we decrease the _____ of a solution, more solute can dissolve.",
+                        options: ["temperature", "pressure", "volume", "concentration"],
+                        correct: "temperature",
+                        explanation: "For most solids, solubility decreases with temperature, so cooling allows more to dissolve."
+                    }
+                ]
+            },
+            es: {
+                basic: [
+                    {
+                        text: "Si calentamos _____ a 100°C, hervirá.",
+                        options: ["agua", "hielo", "leche", "jugo"],
+                        correct: "agua",
+                        explanation: "El agua hierve a 100°C al nivel del mar. Esta es una propiedad fundamental del agua."
+                    },
+                    {
+                        text: "Si ponemos _____ en el congelador, se volverá sólido.",
+                        options: ["agua", "aire", "luz", "sonido"],
+                        correct: "agua",
+                        explanation: "El agua se congela y se convierte en hielo cuando se enfría a 0°C."
+                    },
+                    {
+                        text: "Si plantamos una _____ en tierra y la regamos, crecerá.",
+                        options: ["semilla", "piedra", "juguete", "papel"],
+                        correct: "semilla",
+                        explanation: "Las semillas contienen todo lo necesario para crecer cuando tienen agua, tierra y luz solar."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "Si agregamos _____ al agua, conducirá mejor la electricidad.",
+                        options: ["sal", "azúcar", "aceite", "arena"],
+                        correct: "sal",
+                        explanation: "La sal se disuelve en iones en el agua, haciéndola mejor conductora de electricidad."
+                    },
+                    {
+                        text: "Si aumentamos la _____ en un gas, su volumen disminuirá.",
+                        options: ["presión", "color", "olor", "sabor"],
+                        correct: "presión",
+                        explanation: "Según la Ley de Boyle, presión y volumen están inversamente relacionados en gases."
+                    },
+                    {
+                        text: "Si mezclamos _____ y agua, se separarán en capas.",
+                        options: ["aceite", "sal", "azúcar", "jabón"],
+                        correct: "aceite",
+                        explanation: "El aceite y el agua no se mezclan porque el aceite es menos denso e hidrofóbico."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "Si aumentamos la _____ de una reacción química, la velocidad aumentará.",
+                        options: ["temperatura", "color", "volumen", "masa"],
+                        correct: "temperatura",
+                        explanation: "Mayor temperatura aumenta el movimiento molecular y la frecuencia de colisiones."
+                    },
+                    {
+                        text: "Si agregamos un _____ a una reacción, la acelerará sin consumirse.",
+                        options: ["catalizador", "inhibidor", "solvente", "producto"],
+                        correct: "catalizador",
+                        explanation: "Los catalizadores reducen la energía de activación y aceleran reacciones sin consumirse."
+                    },
+                    {
+                        text: "Si disminuimos la _____ de una solución, más soluto puede disolverse.",
+                        options: ["temperatura", "presión", "volumen", "concentración"],
+                        correct: "temperatura",
+                        explanation: "Para la mayoría de sólidos, la solubilidad disminuye con la temperatura."
+                    }
+                ]
+            },
+            fr: {
+                basic: [
+                    {
+                        text: "Si nous chauffons _____ à 100°C, elle bouillira.",
+                        options: ["l'eau", "la glace", "le lait", "le jus"],
+                        correct: "l'eau",
+                        explanation: "L'eau bout à 100°C au niveau de la mer. C'est une propriété fondamentale de l'eau."
+                    },
+                    {
+                        text: "Si nous mettons _____ dans le congélateur, elle deviendra solide.",
+                        options: ["l'eau", "l'air", "la lumière", "le son"],
+                        correct: "l'eau",
+                        explanation: "L'eau gèle et devient de la glace quand elle est refroidie à 0°C."
+                    },
+                    {
+                        text: "Si nous plantons une _____ dans la terre et l'arrosons, elle poussera.",
+                        options: ["graine", "pierre", "jouet", "papier"],
+                        correct: "graine",
+                        explanation: "Les graines contiennent tout ce qui est nécessaire pour pousser avec de l'eau, de la terre et du soleil."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "Si nous ajoutons _____ à l'eau, elle conduira mieux l'électricité.",
+                        options: ["du sel", "du sucre", "de l'huile", "du sable"],
+                        correct: "du sel",
+                        explanation: "Le sel se dissout en ions dans l'eau, la rendant meilleure conductrice d'électricité."
+                    },
+                    {
+                        text: "Si nous augmentons la _____ sur un gaz, son volume diminuera.",
+                        options: ["pression", "couleur", "odeur", "goût"],
+                        correct: "pression",
+                        explanation: "Selon la loi de Boyle, pression et volume sont inversement liés dans les gaz."
+                    },
+                    {
+                        text: "Si nous mélangeons _____ et l'eau, ils se sépareront en couches.",
+                        options: ["l'huile", "le sel", "le sucre", "le savon"],
+                        correct: "l'huile",
+                        explanation: "L'huile et l'eau ne se mélangent pas car l'huile est moins dense et hydrophobe."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "Si nous augmentons la _____ d'une réaction chimique, la vitesse augmentera.",
+                        options: ["température", "couleur", "volume", "masse"],
+                        correct: "température",
+                        explanation: "Une température plus élevée augmente le mouvement moléculaire et la fréquence des collisions."
+                    },
+                    {
+                        text: "Si nous ajoutons un _____ à une réaction, elle s'accélérera sans être consommé.",
+                        options: ["catalyseur", "inhibiteur", "solvant", "produit"],
+                        correct: "catalyseur",
+                        explanation: "Les catalyseurs réduisent l'énergie d'activation et accélèrent les réactions sans être consommés."
+                    },
+                    {
+                        text: "Si nous diminuons la _____ d'une solution, plus de soluté peut se dissoudre.",
+                        options: ["température", "pression", "volume", "concentration"],
+                        correct: "température",
+                        explanation: "Pour la plupart des solides, la solubilité diminue avec la température."
+                    }
+                ]
+            },
+            ar: {
+                basic: [
+                    {
+                        text: "إذا سخنا _____ إلى 100 درجة مئوية، فسوف يغلي.",
+                        options: ["الماء", "الثلج", "الحليب", "العصير"],
+                        correct: "الماء",
+                        explanation: "يغلي الماء عند 100 درجة مئوية على مستوى سطح البحر. هذه خاصية أساسية للماء."
+                    },
+                    {
+                        text: "إذا وضعنا _____ في الثلاجة، فسوف يصبح صلباً.",
+                        options: ["الماء", "الهواء", "الضوء", "الصوت"],
+                        correct: "الماء",
+                        explanation: "يتجمد الماء ويصبح ثلجاً عندما يبرد إلى 0 درجة مئوية."
+                    },
+                    {
+                        text: "إذا زرعنا _____ في التربة وسقيناها، فسوف تنمو.",
+                        options: ["بذرة", "حجر", "لعبة", "ورق"],
+                        correct: "بذرة",
+                        explanation: "تحتوي البذور على كل ما هو مطلوب للنمو عندما تحصل على الماء والتربة وضوء الشمس."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "إذا أضفنا _____ للماء، فسوف يوصل الكهرباء بشكل أفضل.",
+                        options: ["الملح", "السكر", "الزيت", "الرمل"],
+                        correct: "الملح",
+                        explanation: "يذوب الملح إلى أيونات في الماء، مما يجعله موصلاً أفضل للكهرباء."
+                    },
+                    {
+                        text: "إذا زدنا _____ على الغاز، فسوف يقل حجمه.",
+                        options: ["الضغط", "اللون", "الرائحة", "الطعم"],
+                        correct: "الضغط",
+                        explanation: "وفقاً لقانون بويل، الضغط والحجم مترابطان عكسياً في الغازات."
+                    },
+                    {
+                        text: "إذا خلطنا _____ والماء، فسوف ينفصلان إلى طبقات.",
+                        options: ["الزيت", "الملح", "السكر", "الصابون"],
+                        correct: "الزيت",
+                        explanation: "الزيت والماء لا يختلطان لأن الزيت أقل كثافة ومقاوم للماء."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "إذا زدنا _____ للتفاعل الكيميائي، فسوف تزداد سرعة التفاعل.",
+                        options: ["درجة الحرارة", "اللون", "الحجم", "الكتلة"],
+                        correct: "درجة الحرارة",
+                        explanation: "درجة الحرارة العالية تزيد الحركة الجزيئية وتكرار التصادمات، مما يسرع التفاعلات."
+                    },
+                    {
+                        text: "إذا أضفنا _____ للتفاعل، فسوف يسرعه دون أن يستهلك.",
+                        options: ["محفز", "مثبط", "مذيب", "منتج"],
+                        correct: "محفز",
+                        explanation: "المحفزات تقلل طاقة التنشيط وتسرع التفاعلات دون أن تستهلك في العملية."
+                    },
+                    {
+                        text: "إذا قللنا _____ المحلول، فيمكن لمزيد من المذاب أن يذوب.",
+                        options: ["درجة الحرارة", "الضغط", "الحجم", "التركيز"],
+                        correct: "درجة الحرارة",
+                        explanation: "بالنسبة لمعظم المواد الصلبة، تقل الذوبانية مع درجة الحرارة."
+                    }
+                ]
+            },
+            zh: {
+                basic: [
+                    {
+                        text: "如果我们把_____加热到100°C，它就会沸腾。",
+                        options: ["水", "冰", "牛奶", "果汁"],
+                        correct: "水",
+                        explanation: "水在海平面上100°C时沸腾。这是水的基本性质。"
+                    },
+                    {
+                        text: "如果我们把_____放在冰箱里，它会变成固体。",
+                        options: ["水", "空气", "光", "声音"],
+                        correct: "水",
+                        explanation: "水在冷却到0°C时会结冰变成固体。"
+                    },
+                    {
+                        text: "如果我们把_____种在土里并浇水，它就会生长。",
+                        options: ["种子", "石头", "玩具", "纸"],
+                        correct: "种子",
+                        explanation: "种子含有生长所需的一切，当有水、土壤和阳光时就会发芽。"
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "如果我们在水中加入_____，它会更好地导电。",
+                        options: ["盐", "糖", "油", "沙子"],
+                        correct: "盐",
+                        explanation: "盐在水中溶解成离子，使其成为更好的导体。"
+                    },
+                    {
+                        text: "如果我们增加气体的_____，它的体积会减少。",
+                        options: ["压力", "颜色", "气味", "味道"],
+                        correct: "压力",
+                        explanation: "根据波义耳定律，气体的压力和体积成反比关系。"
+                    },
+                    {
+                        text: "如果我们混合_____和水，它们会分成不同的层。",
+                        options: ["油", "盐", "糖", "肥皂"],
+                        correct: "油",
+                        explanation: "油和水不混合，因为油的密度较小且疏水。"
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "如果我们提高化学反应的_____，反应速率会增加。",
+                        options: ["温度", "颜色", "体积", "质量"],
+                        correct: "温度",
+                        explanation: "较高的温度增加分子运动和碰撞频率，加速反应。"
+                    },
+                    {
+                        text: "如果我们在反应中加入_____，它会加速反应而不被消耗。",
+                        options: ["催化剂", "抑制剂", "溶剂", "产物"],
+                        correct: "催化剂",
+                        explanation: "催化剂降低活化能，加速反应而不在过程中被消耗。"
+                    },
+                    {
+                        text: "如果我们降低溶液的_____，更多溶质可以溶解。",
+                        options: ["温度", "压力", "体积", "浓度"],
+                        correct: "温度",
+                        explanation: "对于大多数固体，溶解度随温度降低而减少。"
+                    }
+                ]
+            }
+        };
+
+        function generateExercises() {
+            const language = document.getElementById('languageSelect').value;
+            const level = document.getElementById('levelSelect').value;
+            const container = document.getElementById('exerciseContainer');
+            
+            currentExercises = exercises[language][level];
+            container.innerHTML = '';
+            
+            currentExercises.forEach((exercise, index) => {
+                const exerciseDiv = document.createElement('div');
+                exerciseDiv.className = 'hypothesis';
+                exerciseDiv.innerHTML = `
+                    <div class="hypothesis-text">
+                        ${exercise.text.replace('_____', `<span class="drop-zone" data-index="${index}"></span>`)}
+                    </div>
+                    <div class="options-container">
+                        ${exercise.options.map(option => 
+                            `<span class="option" draggable="true" data-option="${option}">${option}</span>`
+                        ).join('')}
+                    </div>
+                    <div class="explanation" id="explanation-${index}">
+                        <h4>Explanation:</h4>
+                        <p>${exercise.explanation}</p>
+                    </div>
+                `;
+                container.appendChild(exerciseDiv);
+            });
+            
+            setupDragAndDrop();
+            document.getElementById('scoreCount').textContent = '0';
+            score = 0;
+        }
+
+        function setupDragAndDrop() {
+            const options = document.querySelectorAll('.option');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            options.forEach(option => {
+                option.addEventListener('dragstart', (e) => {
+                    if (option.classList.contains('used')) return false;
+                    e.dataTransfer.setData('text/plain', option.dataset.option);
+                    option.classList.add('dragging');
+                });
+
+                option.addEventListener('dragend', () => {
+                    option.classList.remove('dragging');
+                });
+            });
+
+            dropZones.forEach(dropZone => {
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('drag-over');
+                });
+
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('drag-over');
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const optionText = e.dataTransfer.getData('text/plain');
+                    const option = document.querySelector(`[data-option="${optionText}"]:not(.used)`);
+                    
+                    if (option) {
+                        dropZone.textContent = optionText;
+                        dropZone.classList.remove('drag-over');
+                        dropZone.classList.add('filled');
+                        option.classList.add('used');
+                    }
+                });
+            });
+        }
+
+        function checkAnswers() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            let correctCount = 0;
+
+            dropZones.forEach((dropZone, index) => {
+                const userAnswer = dropZone.textContent.trim();
+                const correctAnswer = currentExercises[index].correct;
+                const explanation = document.getElementById(`explanation-${index}`);
+
+                if (userAnswer === correctAnswer) {
+                    dropZone.style.background = '#c6f6d5';
+                    dropZone.style.borderColor = '#38a169';
+                    correctCount++;
+                } else {
+                    dropZone.style.background = '#fed7d7';
+                    dropZone.style.borderColor = '#e53e3e';
+                }
+
+                explanation.style.display = 'block';
+            });
+
+            score = correctCount;
+            document.getElementById('scoreCount').textContent = score;
+        }
+
+        // Initialize with default exercises
+        generateExercises();
+    </script>
+
+</body></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Hypothesis Fill-in-the-Blank</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        select, button {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        select {
+            background: white;
+            min-width: 120px;
+        }
+        
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+        
+        .exercise-container {
+            margin: 20px 0;
+        }
+        
+        .hypothesis {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+        }
+        
+        .hypothesis-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .drop-zone {
+            display: inline-block;
+            min-width: 100px;
+            height: 35px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 6px;
+            margin: 0 5px;
+            padding: 5px 10px;
+            background: #fff;
+            vertical-align: middle;
+            line-height: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+        
+        .drop-zone.filled {
+            background: #c6f6d5;
+            border-color: #38a169;
+        }
+        
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #edf2f7;
+            border-radius: 8px;
+        }
+        
+        .option {
+            background: #4299e1;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .option:hover {
+            background: #3182ce;
+            transform: scale(1.05);
+        }
+        
+        .option.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        .option.used {
+            background: #a0aec0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .bottom-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+        
+        .score {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #38a169;
+        }
+        
+        .explanation {
+            background: #fff5cd;
+            border: 2px solid #f6e05e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .explanation h4 {
+            color: #744210;
+            margin-top: 0;
+        }
+        
+        .explanation p {
+            color: #744210;
+            margin-bottom: 0;
+        }
+        
+        .refresh-btn {
+            background: #48bb78;
+        }
+        
+        .refresh-btn:hover {
+            background: #38a169;
+        }
+        
+        .check-btn {
+            background: #ed8936;
+        }
+        
+        .check-btn:hover {
+            background: #dd6b20;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Scientific Hypothesis Lab</h1>
+            <p class="subtitle">Drag and drop words to complete scientific hypotheses!</p>
+        </div>
+        
+        <div class="controls">
+            <select id="languageSelect">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="ar">العربية</option>
+                <option value="zh">中文</option>
+            </select>
+            
+            <select id="levelSelect">
+                <option value="basic">Basic (Ages 4-8)</option>
+                <option value="intermediate">Intermediate (Ages 8-12)</option>
+                <option value="advanced">Advanced (Ages 12-16)</option>
+            </select>
+            
+            <button onclick="generateExercises()">🎲 Generate</button>
+        </div>
+        
+        <div id="exerciseContainer"><div class="hypothesis">
+                    <div class="hypothesis-text">
+                        If we increase the <span class="drop-zone" data-index="0"></span> of a chemical reaction, the reaction rate will increase.
+                    </div>
+                    <div class="options-container">
+                        <span class="option" draggable="true" data-option="temperature">temperature</span><span class="option" draggable="true" data-option="color">color</span><span class="option" draggable="true" data-option="volume">volume</span><span class="option" draggable="true" data-option="mass">mass</span>
+                    </div>
+                    <div class="explanation" id="explanation-0">
+                        <h4>Explanation:</h4>
+                        <p>Higher temperature increases molecular motion and collision frequency, speeding up reactions.</p>
+                    </div>
+                </div><div class="hypothesis">
+                    <div class="hypothesis-text">
+                        If we add a <span class="drop-zone" data-index="1"></span> to a chemical reaction, it will speed up without being consumed.
+                    </div>
+                    <div class="options-container">
+                        <span class="option" draggable="true" data-option="catalyst">catalyst</span><span class="option" draggable="true" data-option="inhibitor">inhibitor</span><span class="option" draggable="true" data-option="solvent">solvent</span><span class="option" draggable="true" data-option="product">product</span>
+                    </div>
+                    <div class="explanation" id="explanation-1">
+                        <h4>Explanation:</h4>
+                        <p>Catalysts lower activation energy and speed up reactions without being consumed in the process.</p>
+                    </div>
+                </div><div class="hypothesis">
+                    <div class="hypothesis-text">
+                        If we decrease the <span class="drop-zone" data-index="2"></span> of a solution, more solute can dissolve.
+                    </div>
+                    <div class="options-container">
+                        <span class="option" draggable="true" data-option="temperature">temperature</span><span class="option" draggable="true" data-option="pressure">pressure</span><span class="option" draggable="true" data-option="volume">volume</span><span class="option" draggable="true" data-option="concentration">concentration</span>
+                    </div>
+                    <div class="explanation" id="explanation-2">
+                        <h4>Explanation:</h4>
+                        <p>For most solids, solubility decreases with temperature, so cooling allows more to dissolve.</p>
+                    </div>
+                </div></div>
+        
+        <div class="bottom-controls">
+            <div class="score">
+                Correct Answers: <span id="scoreCount">0</span>
+            </div>
+            <div>
+                <button class="refresh-btn" onclick="generateExercises()">🔄 Refresh</button>
+                <button class="check-btn" onclick="checkAnswers()">✓ Check Answers</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentExercises = [];
+        let score = 0;
+
+        const exercises = {
+            en: {
+                basic: [
+                    {
+                        text: "If we heat _____ to 100°C, it will boil.",
+                        options: ["water", "ice", "milk", "juice"],
+                        correct: "water",
+                        explanation: "Water boils at 100°C (212°F) at sea level. This is a fundamental property of water."
+                    },
+                    {
+                        text: "If we put _____ in the freezer, it will become solid.",
+                        options: ["water", "air", "light", "sound"],
+                        correct: "water",
+                        explanation: "Water freezes and becomes ice when cooled to 0°C (32°F)."
+                    },
+                    {
+                        text: "If we plant a _____ in soil and water it, it will grow.",
+                        options: ["seed", "rock", "toy", "paper"],
+                        correct: "seed",
+                        explanation: "Seeds contain everything needed to grow into plants when given water, soil, and sunlight."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "If we add _____ to water, it will conduct electricity better.",
+                        options: ["salt", "sugar", "oil", "sand"],
+                        correct: "salt",
+                        explanation: "Salt dissolves into ions in water, making it a better conductor of electricity."
+                    },
+                    {
+                        text: "If we increase the _____ on a gas, its volume will decrease.",
+                        options: ["pressure", "color", "smell", "taste"],
+                        correct: "pressure",
+                        explanation: "According to Boyle's Law, pressure and volume are inversely related in gases."
+                    },
+                    {
+                        text: "If we mix _____ and water, they will separate into layers.",
+                        options: ["oil", "salt", "sugar", "soap"],
+                        correct: "oil",
+                        explanation: "Oil and water don't mix because oil is less dense and hydrophobic (water-repelling)."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "If we increase the _____ of a chemical reaction, the reaction rate will increase.",
+                        options: ["temperature", "color", "volume", "mass"],
+                        correct: "temperature",
+                        explanation: "Higher temperature increases molecular motion and collision frequency, speeding up reactions."
+                    },
+                    {
+                        text: "If we add a _____ to a chemical reaction, it will speed up without being consumed.",
+                        options: ["catalyst", "inhibitor", "solvent", "product"],
+                        correct: "catalyst",
+                        explanation: "Catalysts lower activation energy and speed up reactions without being consumed in the process."
+                    },
+                    {
+                        text: "If we decrease the _____ of a solution, more solute can dissolve.",
+                        options: ["temperature", "pressure", "volume", "concentration"],
+                        correct: "temperature",
+                        explanation: "For most solids, solubility decreases with temperature, so cooling allows more to dissolve."
+                    }
+                ]
+            },
+            es: {
+                basic: [
+                    {
+                        text: "Si calentamos _____ a 100°C, hervirá.",
+                        options: ["agua", "hielo", "leche", "jugo"],
+                        correct: "agua",
+                        explanation: "El agua hierve a 100°C al nivel del mar. Esta es una propiedad fundamental del agua."
+                    },
+                    {
+                        text: "Si ponemos _____ en el congelador, se volverá sólido.",
+                        options: ["agua", "aire", "luz", "sonido"],
+                        correct: "agua",
+                        explanation: "El agua se congela y se convierte en hielo cuando se enfría a 0°C."
+                    },
+                    {
+                        text: "Si plantamos una _____ en tierra y la regamos, crecerá.",
+                        options: ["semilla", "piedra", "juguete", "papel"],
+                        correct: "semilla",
+                        explanation: "Las semillas contienen todo lo necesario para crecer cuando tienen agua, tierra y luz solar."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "Si agregamos _____ al agua, conducirá mejor la electricidad.",
+                        options: ["sal", "azúcar", "aceite", "arena"],
+                        correct: "sal",
+                        explanation: "La sal se disuelve en iones en el agua, haciéndola mejor conductora de electricidad."
+                    },
+                    {
+                        text: "Si aumentamos la _____ en un gas, su volumen disminuirá.",
+                        options: ["presión", "color", "olor", "sabor"],
+                        correct: "presión",
+                        explanation: "Según la Ley de Boyle, presión y volumen están inversamente relacionados en gases."
+                    },
+                    {
+                        text: "Si mezclamos _____ y agua, se separarán en capas.",
+                        options: ["aceite", "sal", "azúcar", "jabón"],
+                        correct: "aceite",
+                        explanation: "El aceite y el agua no se mezclan porque el aceite es menos denso e hidrofóbico."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "Si aumentamos la _____ de una reacción química, la velocidad aumentará.",
+                        options: ["temperatura", "color", "volumen", "masa"],
+                        correct: "temperatura",
+                        explanation: "Mayor temperatura aumenta el movimiento molecular y la frecuencia de colisiones."
+                    },
+                    {
+                        text: "Si agregamos un _____ a una reacción, la acelerará sin consumirse.",
+                        options: ["catalizador", "inhibidor", "solvente", "producto"],
+                        correct: "catalizador",
+                        explanation: "Los catalizadores reducen la energía de activación y aceleran reacciones sin consumirse."
+                    },
+                    {
+                        text: "Si disminuimos la _____ de una solución, más soluto puede disolverse.",
+                        options: ["temperatura", "presión", "volumen", "concentración"],
+                        correct: "temperatura",
+                        explanation: "Para la mayoría de sólidos, la solubilidad disminuye con la temperatura."
+                    }
+                ]
+            },
+            fr: {
+                basic: [
+                    {
+                        text: "Si nous chauffons _____ à 100°C, elle bouillira.",
+                        options: ["l'eau", "la glace", "le lait", "le jus"],
+                        correct: "l'eau",
+                        explanation: "L'eau bout à 100°C au niveau de la mer. C'est une propriété fondamentale de l'eau."
+                    },
+                    {
+                        text: "Si nous mettons _____ dans le congélateur, elle deviendra solide.",
+                        options: ["l'eau", "l'air", "la lumière", "le son"],
+                        correct: "l'eau",
+                        explanation: "L'eau gèle et devient de la glace quand elle est refroidie à 0°C."
+                    },
+                    {
+                        text: "Si nous plantons une _____ dans la terre et l'arrosons, elle poussera.",
+                        options: ["graine", "pierre", "jouet", "papier"],
+                        correct: "graine",
+                        explanation: "Les graines contiennent tout ce qui est nécessaire pour pousser avec de l'eau, de la terre et du soleil."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "Si nous ajoutons _____ à l'eau, elle conduira mieux l'électricité.",
+                        options: ["du sel", "du sucre", "de l'huile", "du sable"],
+                        correct: "du sel",
+                        explanation: "Le sel se dissout en ions dans l'eau, la rendant meilleure conductrice d'électricité."
+                    },
+                    {
+                        text: "Si nous augmentons la _____ sur un gaz, son volume diminuera.",
+                        options: ["pression", "couleur", "odeur", "goût"],
+                        correct: "pression",
+                        explanation: "Selon la loi de Boyle, pression et volume sont inversement liés dans les gaz."
+                    },
+                    {
+                        text: "Si nous mélangeons _____ et l'eau, ils se sépareront en couches.",
+                        options: ["l'huile", "le sel", "le sucre", "le savon"],
+                        correct: "l'huile",
+                        explanation: "L'huile et l'eau ne se mélangent pas car l'huile est moins dense et hydrophobe."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "Si nous augmentons la _____ d'une réaction chimique, la vitesse augmentera.",
+                        options: ["température", "couleur", "volume", "masse"],
+                        correct: "température",
+                        explanation: "Une température plus élevée augmente le mouvement moléculaire et la fréquence des collisions."
+                    },
+                    {
+                        text: "Si nous ajoutons un _____ à une réaction, elle s'accélérera sans être consommé.",
+                        options: ["catalyseur", "inhibiteur", "solvant", "produit"],
+                        correct: "catalyseur",
+                        explanation: "Les catalyseurs réduisent l'énergie d'activation et accélèrent les réactions sans être consommés."
+                    },
+                    {
+                        text: "Si nous diminuons la _____ d'une solution, plus de soluté peut se dissoudre.",
+                        options: ["température", "pression", "volume", "concentration"],
+                        correct: "température",
+                        explanation: "Pour la plupart des solides, la solubilité diminue avec la température."
+                    }
+                ]
+            },
+            ar: {
+                basic: [
+                    {
+                        text: "إذا سخنا _____ إلى 100 درجة مئوية، فسوف يغلي.",
+                        options: ["الماء", "الثلج", "الحليب", "العصير"],
+                        correct: "الماء",
+                        explanation: "يغلي الماء عند 100 درجة مئوية على مستوى سطح البحر. هذه خاصية أساسية للماء."
+                    },
+                    {
+                        text: "إذا وضعنا _____ في الثلاجة، فسوف يصبح صلباً.",
+                        options: ["الماء", "الهواء", "الضوء", "الصوت"],
+                        correct: "الماء",
+                        explanation: "يتجمد الماء ويصبح ثلجاً عندما يبرد إلى 0 درجة مئوية."
+                    },
+                    {
+                        text: "إذا زرعنا _____ في التربة وسقيناها، فسوف تنمو.",
+                        options: ["بذرة", "حجر", "لعبة", "ورق"],
+                        correct: "بذرة",
+                        explanation: "تحتوي البذور على كل ما هو مطلوب للنمو عندما تحصل على الماء والتربة وضوء الشمس."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "إذا أضفنا _____ للماء، فسوف يوصل الكهرباء بشكل أفضل.",
+                        options: ["الملح", "السكر", "الزيت", "الرمل"],
+                        correct: "الملح",
+                        explanation: "يذوب الملح إلى أيونات في الماء، مما يجعله موصلاً أفضل للكهرباء."
+                    },
+                    {
+                        text: "إذا زدنا _____ على الغاز، فسوف يقل حجمه.",
+                        options: ["الضغط", "اللون", "الرائحة", "الطعم"],
+                        correct: "الضغط",
+                        explanation: "وفقاً لقانون بويل، الضغط والحجم مترابطان عكسياً في الغازات."
+                    },
+                    {
+                        text: "إذا خلطنا _____ والماء، فسوف ينفصلان إلى طبقات.",
+                        options: ["الزيت", "الملح", "السكر", "الصابون"],
+                        correct: "الزيت",
+                        explanation: "الزيت والماء لا يختلطان لأن الزيت أقل كثافة ومقاوم للماء."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "إذا زدنا _____ للتفاعل الكيميائي، فسوف تزداد سرعة التفاعل.",
+                        options: ["درجة الحرارة", "اللون", "الحجم", "الكتلة"],
+                        correct: "درجة الحرارة",
+                        explanation: "درجة الحرارة العالية تزيد الحركة الجزيئية وتكرار التصادمات، مما يسرع التفاعلات."
+                    },
+                    {
+                        text: "إذا أضفنا _____ للتفاعل، فسوف يسرعه دون أن يستهلك.",
+                        options: ["محفز", "مثبط", "مذيب", "منتج"],
+                        correct: "محفز",
+                        explanation: "المحفزات تقلل طاقة التنشيط وتسرع التفاعلات دون أن تستهلك في العملية."
+                    },
+                    {
+                        text: "إذا قللنا _____ المحلول، فيمكن لمزيد من المذاب أن يذوب.",
+                        options: ["درجة الحرارة", "الضغط", "الحجم", "التركيز"],
+                        correct: "درجة الحرارة",
+                        explanation: "بالنسبة لمعظم المواد الصلبة، تقل الذوبانية مع درجة الحرارة."
+                    }
+                ]
+            },
+            zh: {
+                basic: [
+                    {
+                        text: "如果我们把_____加热到100°C，它就会沸腾。",
+                        options: ["水", "冰", "牛奶", "果汁"],
+                        correct: "水",
+                        explanation: "水在海平面上100°C时沸腾。这是水的基本性质。"
+                    },
+                    {
+                        text: "如果我们把_____放在冰箱里，它会变成固体。",
+                        options: ["水", "空气", "光", "声音"],
+                        correct: "水",
+                        explanation: "水在冷却到0°C时会结冰变成固体。"
+                    },
+                    {
+                        text: "如果我们把_____种在土里并浇水，它就会生长。",
+                        options: ["种子", "石头", "玩具", "纸"],
+                        correct: "种子",
+                        explanation: "种子含有生长所需的一切，当有水、土壤和阳光时就会发芽。"
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "如果我们在水中加入_____，它会更好地导电。",
+                        options: ["盐", "糖", "油", "沙子"],
+                        correct: "盐",
+                        explanation: "盐在水中溶解成离子，使其成为更好的导体。"
+                    },
+                    {
+                        text: "如果我们增加气体的_____，它的体积会减少。",
+                        options: ["压力", "颜色", "气味", "味道"],
+                        correct: "压力",
+                        explanation: "根据波义耳定律，气体的压力和体积成反比关系。"
+                    },
+                    {
+                        text: "如果我们混合_____和水，它们会分成不同的层。",
+                        options: ["油", "盐", "糖", "肥皂"],
+                        correct: "油",
+                        explanation: "油和水不混合，因为油的密度较小且疏水。"
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "如果我们提高化学反应的_____，反应速率会增加。",
+                        options: ["温度", "颜色", "体积", "质量"],
+                        correct: "温度",
+                        explanation: "较高的温度增加分子运动和碰撞频率，加速反应。"
+                    },
+                    {
+                        text: "如果我们在反应中加入_____，它会加速反应而不被消耗。",
+                        options: ["催化剂", "抑制剂", "溶剂", "产物"],
+                        correct: "催化剂",
+                        explanation: "催化剂降低活化能，加速反应而不在过程中被消耗。"
+                    },
+                    {
+                        text: "如果我们降低溶液的_____，更多溶质可以溶解。",
+                        options: ["温度", "压力", "体积", "浓度"],
+                        correct: "温度",
+                        explanation: "对于大多数固体，溶解度随温度降低而减少。"
+                    }
+                ]
+            }
+        };
+
+        function generateExercises() {
+            const language = document.getElementById('languageSelect').value;
+            const level = document.getElementById('levelSelect').value;
+            const container = document.getElementById('exerciseContainer');
+            
+            currentExercises = exercises[language][level];
+            container.innerHTML = '';
+            
+            currentExercises.forEach((exercise, index) => {
+                const exerciseDiv = document.createElement('div');
+                exerciseDiv.className = 'hypothesis';
+                exerciseDiv.innerHTML = `
+                    <div class="hypothesis-text">
+                        ${exercise.text.replace('_____', `<span class="drop-zone" data-index="${index}"></span>`)}
+                    </div>
+                    <div class="options-container">
+                        ${exercise.options.map(option => 
+                            `<span class="option" draggable="true" data-option="${option}">${option}</span>`
+                        ).join('')}
+                    </div>
+                    <div class="explanation" id="explanation-${index}">
+                        <h4>Explanation:</h4>
+                        <p>${exercise.explanation}</p>
+                    </div>
+                `;
+                container.appendChild(exerciseDiv);
+            });
+            
+            setupDragAndDrop();
+            document.getElementById('scoreCount').textContent = '0';
+            score = 0;
+        }
+
+        function setupDragAndDrop() {
+            const options = document.querySelectorAll('.option');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            options.forEach(option => {
+                option.addEventListener('dragstart', (e) => {
+                    if (option.classList.contains('used')) return false;
+                    e.dataTransfer.setData('text/plain', option.dataset.option);
+                    option.classList.add('dragging');
+                });
+
+                option.addEventListener('dragend', () => {
+                    option.classList.remove('dragging');
+                });
+            });
+
+            dropZones.forEach(dropZone => {
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('drag-over');
+                });
+
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('drag-over');
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const optionText = e.dataTransfer.getData('text/plain');
+                    const option = document.querySelector(`[data-option="${optionText}"]:not(.used)`);
+                    
+                    if (option) {
+                        dropZone.textContent = optionText;
+                        dropZone.classList.remove('drag-over');
+                        dropZone.classList.add('filled');
+                        option.classList.add('used');
+                    }
+                });
+            });
+        }
+
+        function checkAnswers() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            let correctCount = 0;
+
+            dropZones.forEach((dropZone, index) => {
+                const userAnswer = dropZone.textContent.trim();
+                const correctAnswer = currentExercises[index].correct;
+                const explanation = document.getElementById(`explanation-${index}`);
+
+                if (userAnswer === correctAnswer) {
+                    dropZone.style.background = '#c6f6d5';
+                    dropZone.style.borderColor = '#38a169';
+                    correctCount++;
+                } else {
+                    dropZone.style.background = '#fed7d7';
+                    dropZone.style.borderColor = '#e53e3e';
+                }
+
+                explanation.style.display = 'block';
+            });
+
+            score = correctCount;
+            document.getElementById('scoreCount').textContent = score;
+        }
+
+        // Initialize with default exercises
+        generateExercises();
+    </script>
+
+</body>
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Hypothesis Fill-in-the-Blank</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        select, button {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        select {
+            background: white;
+            min-width: 120px;
+        }
+        
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+        
+        .exercise-container {
+            margin: 20px 0;
+        }
+        
+        .hypothesis {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+        }
+        
+        .hypothesis-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .drop-zone {
+            display: inline-block;
+            min-width: 100px;
+            height: 35px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 6px;
+            margin: 0 5px;
+            padding: 5px 10px;
+            background: #fff;
+            vertical-align: middle;
+            line-height: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+        
+        .drop-zone.filled {
+            background: #c6f6d5;
+            border-color: #38a169;
+        }
+        
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #edf2f7;
+            border-radius: 8px;
+        }
+        
+        .option {
+            background: #4299e1;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .option:hover {
+            background: #3182ce;
+            transform: scale(1.05);
+        }
+        
+        .option.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        .option.used {
+            background: #a0aec0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .bottom-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+        
+        .score {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #38a169;
+        }
+        
+        .explanation {
+            background: #fff5cd;
+            border: 2px solid #f6e05e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .explanation h4 {
+            color: #744210;
+            margin-top: 0;
+        }
+        
+        .explanation p {
+            color: #744210;
+            margin-bottom: 0;
+        }
+        
+        .refresh-btn {
+            background: #48bb78;
+        }
+        
+        .refresh-btn:hover {
+            background: #38a169;
+        }
+        
+        .check-btn {
+            background: #ed8936;
+        }
+        
+        .check-btn:hover {
+            background: #dd6b20;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Scientific Hypothesis Lab</h1>
+            <p class="subtitle">Drag and drop words to complete scientific hypotheses!</p>
+        </div>
+        
+        <div class="controls">
+            <select id="languageSelect">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="ar">العربية</option>
+                <option value="zh">中文</option>
+            </select>
+            
+            <select id="levelSelect">
+                <option value="basic">Basic (Ages 4-8)</option>
+                <option value="intermediate">Intermediate (Ages 8-12)</option>
+                <option value="advanced">Advanced (Ages 12-16)</option>
+            </select>
+            
+            <button onclick="generateExercises()">🎲 Generate</button>
+        </div>
+        
+        <div id="exerciseContainer"><div class="hypothesis">
+                    <div class="hypothesis-text">
+                        If we increase the <span class="drop-zone" data-index="0"></span> of a chemical reaction, the reaction rate will increase.
+                    </div>
+                    <div class="options-container">
+                        <span class="option" draggable="true" data-option="temperature">temperature</span><span class="option" draggable="true" data-option="color">color</span><span class="option" draggable="true" data-option="volume">volume</span><span class="option" draggable="true" data-option="mass">mass</span>
+                    </div>
+                    <div class="explanation" id="explanation-0">
+                        <h4>Explanation:</h4>
+                        <p>Higher temperature increases molecular motion and collision frequency, speeding up reactions.</p>
+                    </div>
+                </div><div class="hypothesis">
+                    <div class="hypothesis-text">
+                        If we add a <span class="drop-zone" data-index="1"></span> to a chemical reaction, it will speed up without being consumed.
+                    </div>
+                    <div class="options-container">
+                        <span class="option" draggable="true" data-option="catalyst">catalyst</span><span class="option" draggable="true" data-option="inhibitor">inhibitor</span><span class="option" draggable="true" data-option="solvent">solvent</span><span class="option" draggable="true" data-option="product">product</span>
+                    </div>
+                    <div class="explanation" id="explanation-1">
+                        <h4>Explanation:</h4>
+                        <p>Catalysts lower activation energy and speed up reactions without being consumed in the process.</p>
+                    </div>
+                </div><div class="hypothesis">
+                    <div class="hypothesis-text">
+                        If we decrease the <span class="drop-zone" data-index="2"></span> of a solution, more solute can dissolve.
+                    </div>
+                    <div class="options-container">
+                        <span class="option" draggable="true" data-option="temperature">temperature</span><span class="option" draggable="true" data-option="pressure">pressure</span><span class="option" draggable="true" data-option="volume">volume</span><span class="option" draggable="true" data-option="concentration">concentration</span>
+                    </div>
+                    <div class="explanation" id="explanation-2">
+                        <h4>Explanation:</h4>
+                        <p>For most solids, solubility decreases with temperature, so cooling allows more to dissolve.</p>
+                    </div>
+                </div></div>
+        
+        <div class="bottom-controls">
+            <div class="score">
+                Correct Answers: <span id="scoreCount">0</span>
+            </div>
+            <div>
+                <button class="refresh-btn" onclick="generateExercises()">🔄 Refresh</button>
+                <button class="check-btn" onclick="checkAnswers()">✓ Check Answers</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentExercises = [];
+        let score = 0;
+
+        const exercises = {
+            en: {
+                basic: [
+                    {
+                        text: "If we heat _____ to 100°C, it will boil.",
+                        options: ["water", "ice", "milk", "juice"],
+                        correct: "water",
+                        explanation: "Water boils at 100°C (212°F) at sea level. This is a fundamental property of water."
+                    },
+                    {
+                        text: "If we put _____ in the freezer, it will become solid.",
+                        options: ["water", "air", "light", "sound"],
+                        correct: "water",
+                        explanation: "Water freezes and becomes ice when cooled to 0°C (32°F)."
+                    },
+                    {
+                        text: "If we plant a _____ in soil and water it, it will grow.",
+                        options: ["seed", "rock", "toy", "paper"],
+                        correct: "seed",
+                        explanation: "Seeds contain everything needed to grow into plants when given water, soil, and sunlight."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "If we add _____ to water, it will conduct electricity better.",
+                        options: ["salt", "sugar", "oil", "sand"],
+                        correct: "salt",
+                        explanation: "Salt dissolves into ions in water, making it a better conductor of electricity."
+                    },
+                    {
+                        text: "If we increase the _____ on a gas, its volume will decrease.",
+                        options: ["pressure", "color", "smell", "taste"],
+                        correct: "pressure",
+                        explanation: "According to Boyle's Law, pressure and volume are inversely related in gases."
+                    },
+                    {
+                        text: "If we mix _____ and water, they will separate into layers.",
+                        options: ["oil", "salt", "sugar", "soap"],
+                        correct: "oil",
+                        explanation: "Oil and water don't mix because oil is less dense and hydrophobic (water-repelling)."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "If we increase the _____ of a chemical reaction, the reaction rate will increase.",
+                        options: ["temperature", "color", "volume", "mass"],
+                        correct: "temperature",
+                        explanation: "Higher temperature increases molecular motion and collision frequency, speeding up reactions."
+                    },
+                    {
+                        text: "If we add a _____ to a chemical reaction, it will speed up without being consumed.",
+                        options: ["catalyst", "inhibitor", "solvent", "product"],
+                        correct: "catalyst",
+                        explanation: "Catalysts lower activation energy and speed up reactions without being consumed in the process."
+                    },
+                    {
+                        text: "If we decrease the _____ of a solution, more solute can dissolve.",
+                        options: ["temperature", "pressure", "volume", "concentration"],
+                        correct: "temperature",
+                        explanation: "For most solids, solubility decreases with temperature, so cooling allows more to dissolve."
+                    }
+                ]
+            },
+            es: {
+                basic: [
+                    {
+                        text: "Si calentamos _____ a 100°C, hervirá.",
+                        options: ["agua", "hielo", "leche", "jugo"],
+                        correct: "agua",
+                        explanation: "El agua hierve a 100°C al nivel del mar. Esta es una propiedad fundamental del agua."
+                    },
+                    {
+                        text: "Si ponemos _____ en el congelador, se volverá sólido.",
+                        options: ["agua", "aire", "luz", "sonido"],
+                        correct: "agua",
+                        explanation: "El agua se congela y se convierte en hielo cuando se enfría a 0°C."
+                    },
+                    {
+                        text: "Si plantamos una _____ en tierra y la regamos, crecerá.",
+                        options: ["semilla", "piedra", "juguete", "papel"],
+                        correct: "semilla",
+                        explanation: "Las semillas contienen todo lo necesario para crecer cuando tienen agua, tierra y luz solar."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "Si agregamos _____ al agua, conducirá mejor la electricidad.",
+                        options: ["sal", "azúcar", "aceite", "arena"],
+                        correct: "sal",
+                        explanation: "La sal se disuelve en iones en el agua, haciéndola mejor conductora de electricidad."
+                    },
+                    {
+                        text: "Si aumentamos la _____ en un gas, su volumen disminuirá.",
+                        options: ["presión", "color", "olor", "sabor"],
+                        correct: "presión",
+                        explanation: "Según la Ley de Boyle, presión y volumen están inversamente relacionados en gases."
+                    },
+                    {
+                        text: "Si mezclamos _____ y agua, se separarán en capas.",
+                        options: ["aceite", "sal", "azúcar", "jabón"],
+                        correct: "aceite",
+                        explanation: "El aceite y el agua no se mezclan porque el aceite es menos denso e hidrofóbico."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "Si aumentamos la _____ de una reacción química, la velocidad aumentará.",
+                        options: ["temperatura", "color", "volumen", "masa"],
+                        correct: "temperatura",
+                        explanation: "Mayor temperatura aumenta el movimiento molecular y la frecuencia de colisiones."
+                    },
+                    {
+                        text: "Si agregamos un _____ a una reacción, la acelerará sin consumirse.",
+                        options: ["catalizador", "inhibidor", "solvente", "producto"],
+                        correct: "catalizador",
+                        explanation: "Los catalizadores reducen la energía de activación y aceleran reacciones sin consumirse."
+                    },
+                    {
+                        text: "Si disminuimos la _____ de una solución, más soluto puede disolverse.",
+                        options: ["temperatura", "presión", "volumen", "concentración"],
+                        correct: "temperatura",
+                        explanation: "Para la mayoría de sólidos, la solubilidad disminuye con la temperatura."
+                    }
+                ]
+            },
+            fr: {
+                basic: [
+                    {
+                        text: "Si nous chauffons _____ à 100°C, elle bouillira.",
+                        options: ["l'eau", "la glace", "le lait", "le jus"],
+                        correct: "l'eau",
+                        explanation: "L'eau bout à 100°C au niveau de la mer. C'est une propriété fondamentale de l'eau."
+                    },
+                    {
+                        text: "Si nous mettons _____ dans le congélateur, elle deviendra solide.",
+                        options: ["l'eau", "l'air", "la lumière", "le son"],
+                        correct: "l'eau",
+                        explanation: "L'eau gèle et devient de la glace quand elle est refroidie à 0°C."
+                    },
+                    {
+                        text: "Si nous plantons une _____ dans la terre et l'arrosons, elle poussera.",
+                        options: ["graine", "pierre", "jouet", "papier"],
+                        correct: "graine",
+                        explanation: "Les graines contiennent tout ce qui est nécessaire pour pousser avec de l'eau, de la terre et du soleil."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "Si nous ajoutons _____ à l'eau, elle conduira mieux l'électricité.",
+                        options: ["du sel", "du sucre", "de l'huile", "du sable"],
+                        correct: "du sel",
+                        explanation: "Le sel se dissout en ions dans l'eau, la rendant meilleure conductrice d'électricité."
+                    },
+                    {
+                        text: "Si nous augmentons la _____ sur un gaz, son volume diminuera.",
+                        options: ["pression", "couleur", "odeur", "goût"],
+                        correct: "pression",
+                        explanation: "Selon la loi de Boyle, pression et volume sont inversement liés dans les gaz."
+                    },
+                    {
+                        text: "Si nous mélangeons _____ et l'eau, ils se sépareront en couches.",
+                        options: ["l'huile", "le sel", "le sucre", "le savon"],
+                        correct: "l'huile",
+                        explanation: "L'huile et l'eau ne se mélangent pas car l'huile est moins dense et hydrophobe."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "Si nous augmentons la _____ d'une réaction chimique, la vitesse augmentera.",
+                        options: ["température", "couleur", "volume", "masse"],
+                        correct: "température",
+                        explanation: "Une température plus élevée augmente le mouvement moléculaire et la fréquence des collisions."
+                    },
+                    {
+                        text: "Si nous ajoutons un _____ à une réaction, elle s'accélérera sans être consommé.",
+                        options: ["catalyseur", "inhibiteur", "solvant", "produit"],
+                        correct: "catalyseur",
+                        explanation: "Les catalyseurs réduisent l'énergie d'activation et accélèrent les réactions sans être consommés."
+                    },
+                    {
+                        text: "Si nous diminuons la _____ d'une solution, plus de soluté peut se dissoudre.",
+                        options: ["température", "pression", "volume", "concentration"],
+                        correct: "température",
+                        explanation: "Pour la plupart des solides, la solubilité diminue avec la température."
+                    }
+                ]
+            },
+            ar: {
+                basic: [
+                    {
+                        text: "إذا سخنا _____ إلى 100 درجة مئوية، فسوف يغلي.",
+                        options: ["الماء", "الثلج", "الحليب", "العصير"],
+                        correct: "الماء",
+                        explanation: "يغلي الماء عند 100 درجة مئوية على مستوى سطح البحر. هذه خاصية أساسية للماء."
+                    },
+                    {
+                        text: "إذا وضعنا _____ في الثلاجة، فسوف يصبح صلباً.",
+                        options: ["الماء", "الهواء", "الضوء", "الصوت"],
+                        correct: "الماء",
+                        explanation: "يتجمد الماء ويصبح ثلجاً عندما يبرد إلى 0 درجة مئوية."
+                    },
+                    {
+                        text: "إذا زرعنا _____ في التربة وسقيناها، فسوف تنمو.",
+                        options: ["بذرة", "حجر", "لعبة", "ورق"],
+                        correct: "بذرة",
+                        explanation: "تحتوي البذور على كل ما هو مطلوب للنمو عندما تحصل على الماء والتربة وضوء الشمس."
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "إذا أضفنا _____ للماء، فسوف يوصل الكهرباء بشكل أفضل.",
+                        options: ["الملح", "السكر", "الزيت", "الرمل"],
+                        correct: "الملح",
+                        explanation: "يذوب الملح إلى أيونات في الماء، مما يجعله موصلاً أفضل للكهرباء."
+                    },
+                    {
+                        text: "إذا زدنا _____ على الغاز، فسوف يقل حجمه.",
+                        options: ["الضغط", "اللون", "الرائحة", "الطعم"],
+                        correct: "الضغط",
+                        explanation: "وفقاً لقانون بويل، الضغط والحجم مترابطان عكسياً في الغازات."
+                    },
+                    {
+                        text: "إذا خلطنا _____ والماء، فسوف ينفصلان إلى طبقات.",
+                        options: ["الزيت", "الملح", "السكر", "الصابون"],
+                        correct: "الزيت",
+                        explanation: "الزيت والماء لا يختلطان لأن الزيت أقل كثافة ومقاوم للماء."
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "إذا زدنا _____ للتفاعل الكيميائي، فسوف تزداد سرعة التفاعل.",
+                        options: ["درجة الحرارة", "اللون", "الحجم", "الكتلة"],
+                        correct: "درجة الحرارة",
+                        explanation: "درجة الحرارة العالية تزيد الحركة الجزيئية وتكرار التصادمات، مما يسرع التفاعلات."
+                    },
+                    {
+                        text: "إذا أضفنا _____ للتفاعل، فسوف يسرعه دون أن يستهلك.",
+                        options: ["محفز", "مثبط", "مذيب", "منتج"],
+                        correct: "محفز",
+                        explanation: "المحفزات تقلل طاقة التنشيط وتسرع التفاعلات دون أن تستهلك في العملية."
+                    },
+                    {
+                        text: "إذا قللنا _____ المحلول، فيمكن لمزيد من المذاب أن يذوب.",
+                        options: ["درجة الحرارة", "الضغط", "الحجم", "التركيز"],
+                        correct: "درجة الحرارة",
+                        explanation: "بالنسبة لمعظم المواد الصلبة، تقل الذوبانية مع درجة الحرارة."
+                    }
+                ]
+            },
+            zh: {
+                basic: [
+                    {
+                        text: "如果我们把_____加热到100°C，它就会沸腾。",
+                        options: ["水", "冰", "牛奶", "果汁"],
+                        correct: "水",
+                        explanation: "水在海平面上100°C时沸腾。这是水的基本性质。"
+                    },
+                    {
+                        text: "如果我们把_____放在冰箱里，它会变成固体。",
+                        options: ["水", "空气", "光", "声音"],
+                        correct: "水",
+                        explanation: "水在冷却到0°C时会结冰变成固体。"
+                    },
+                    {
+                        text: "如果我们把_____种在土里并浇水，它就会生长。",
+                        options: ["种子", "石头", "玩具", "纸"],
+                        correct: "种子",
+                        explanation: "种子含有生长所需的一切，当有水、土壤和阳光时就会发芽。"
+                    }
+                ],
+                intermediate: [
+                    {
+                        text: "如果我们在水中加入_____，它会更好地导电。",
+                        options: ["盐", "糖", "油", "沙子"],
+                        correct: "盐",
+                        explanation: "盐在水中溶解成离子，使其成为更好的导体。"
+                    },
+                    {
+                        text: "如果我们增加气体的_____，它的体积会减少。",
+                        options: ["压力", "颜色", "气味", "味道"],
+                        correct: "压力",
+                        explanation: "根据波义耳定律，气体的压力和体积成反比关系。"
+                    },
+                    {
+                        text: "如果我们混合_____和水，它们会分成不同的层。",
+                        options: ["油", "盐", "糖", "肥皂"],
+                        correct: "油",
+                        explanation: "油和水不混合，因为油的密度较小且疏水。"
+                    }
+                ],
+                advanced: [
+                    {
+                        text: "如果我们提高化学反应的_____，反应速率会增加。",
+                        options: ["温度", "颜色", "体积", "质量"],
+                        correct: "温度",
+                        explanation: "较高的温度增加分子运动和碰撞频率，加速反应。"
+                    },
+                    {
+                        text: "如果我们在反应中加入_____，它会加速反应而不被消耗。",
+                        options: ["催化剂", "抑制剂", "溶剂", "产物"],
+                        correct: "催化剂",
+                        explanation: "催化剂降低活化能，加速反应而不在过程中被消耗。"
+                    },
+                    {
+                        text: "如果我们降低溶液的_____，更多溶质可以溶解。",
+                        options: ["温度", "压力", "体积", "浓度"],
+                        correct: "温度",
+                        explanation: "对于大多数固体，溶解度随温度降低而减少。"
+                    }
+                ]
+            }
+        };
+
+        function generateExercises() {
+            const language = document.getElementById('languageSelect').value;
+            const level = document.getElementById('levelSelect').value;
+            const container = document.getElementById('exerciseContainer');
+            
+            currentExercises = exercises[language][level];
+            container.innerHTML = '';
+            
+            currentExercises.forEach((exercise, index) => {
+                const exerciseDiv = document.createElement('div');
+                exerciseDiv.className = 'hypothesis';
+                exerciseDiv.innerHTML = `
+                    <div class="hypothesis-text">
+                        ${exercise.text.replace('_____', `<span class="drop-zone" data-index="${index}"></span>`)}
+                    </div>
+                    <div class="options-container">
+                        ${exercise.options.map(option => 
+                            `<span class="option" draggable="true" data-option="${option}">${option}</span>`
+                        ).join('')}
+                    </div>
+                    <div class="explanation" id="explanation-${index}">
+                        <h4>Explanation:</h4>
+                        <p>${exercise.explanation}</p>
+                    </div>
+                `;
+                container.appendChild(exerciseDiv);
+            });
+            
+            setupDragAndDrop();
+            document.getElementById('scoreCount').textContent = '0';
+            score = 0;
+        }
+
+        function setupDragAndDrop() {
+            const options = document.querySelectorAll('.option');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            options.forEach(option => {
+                option.addEventListener('dragstart', (e) => {
+                    if (option.classList.contains('used')) return false;
+                    e.dataTransfer.setData('text/plain', option.dataset.option);
+                    option.classList.add('dragging');
+                });
+
+                option.addEventListener('dragend', () => {
+                    option.classList.remove('dragging');
+                });
+            });
+
+            dropZones.forEach(dropZone => {
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('drag-over');
+                });
+
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('drag-over');
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const optionText = e.dataTransfer.getData('text/plain');
+                    const option = document.querySelector(`[data-option="${optionText}"]:not(.used)`);
+                    
+                    if (option) {
+                        dropZone.textContent = optionText;
+                        dropZone.classList.remove('drag-over');
+                        dropZone.classList.add('filled');
+                        option.classList.add('used');
+                    }
+                });
+            });
+        }
+
+        function checkAnswers() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            let correctCount = 0;
+
+            dropZones.forEach((dropZone, index) => {
+                const userAnswer = dropZone.textContent.trim();
+                const correctAnswer = currentExercises[index].correct;
+                const explanation = document.getElementById(`explanation-${index}`);
+
+                if (userAnswer === correctAnswer) {
+                    dropZone.style.background = '#c6f6d5';
+                    dropZone.style.borderColor = '#38a169';
+                    correctCount++;
+                } else {
+                    dropZone.style.background = '#fed7d7';
+                    dropZone.style.borderColor = '#e53e3e';
+                }
+
+                explanation.style.display = 'block';
+            });
+
+            score = correctCount;
+            document.getElementById('scoreCount').textContent = score;
+        }
+
+        // Initialize with default exercises
+        generateExercises();
+    </script>
+
+</body></html>
