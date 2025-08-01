@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Organelle Structure-Function Match</title>
+<style>
+:root{--primary:#6930c3;--card:#ffffff;--cardBack:#d0f4de;}
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+body{margin:0;display:flex;flex-direction:column;align-items:center;background:#f1f3f5;color:#212529;}
+header{background:var(--primary);color:#fff;width:100%;text-align:center;padding:10px 6px;}
+.controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0;}
+.controls select,.controls button{padding:6px 12px;border-radius:6px;border:1px solid #ced4da;font-size:0.9rem;cursor:pointer;}
+.controls button{background:var(--primary);color:#fff;border:none;}
+#stats{margin-left:6px;font-weight:bold;}
+#board{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;width:100%;max-width:600px;padding:0 12px 24px;}
+.card{position:relative;width:100%;padding-top:120%;perspective:600px;cursor:pointer;}
+.inner{position:absolute;top:0;left:0;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d;}
+.card.flipped .inner{transform:rotateY(180deg);}
+.face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border:2px solid #adb5bd;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;}
+.front{background:var(--cardBack);}
+.back{background:var(--card);transform:rotateY(180deg);}
+footer{margin:12px;font-size:0.8rem;color:#868e96;}
+</style>
+</head>
+<body>
+<header><h2 id="title">Match Each Organelle with Its Function</h2></header>
+
+<div class="controls">
+<label>Language</label>
+<select id="lang">
+ <option value="en">English</option>
+ <option value="es">Español</option>
+ <option value="fr">Français</option>
+ <option value="ar">العربية</option>
+ <option value="zh">中文</option>
+</select>
+<label>Level</label>
+<select id="level">
+ <option value="basic">Basic</option>
+ <option value="intermediate">Intermediate</option>
+ <option value="advanced">Advanced</option>
+</select>
+<button id="generate">Generate</button>
+<span id="stats"></span>
+</div>
+
+<div id="board"></div>
+
+<footer>&copy; 2025 – Organelle Match Game</footer>
+
+<script>
+const pauseDuration=2000; // 2 seconds peek time
+
+const palette={
+ nucleus:"#e0bbff",
+ mitochondrion:"#caffbf",
+ ribosome:"#ffd6a5",
+ vacuole:"#bde0fe",
+ membrane:"#ffcfdf"
+};
+
+const data={
+ nucleus:{en:{b:"nucleus",f:["controls the cell","cell's control center","contains DNA & regulates activities"]},
+          es:{b:"núcleo",f:["controla la célula","centro de control","contiene ADN y regula actividades"]},
+          fr:{b:"noyau",f:["contrôle la cellule","centre de contrôle","contient l'ADN et régule"]},
+          ar:{b:"نواة",f:["تتحكم في الخلية","مركز التحكم","تحتوي على DNA وتنظم الوظائف"]},
+          zh:{b:"细胞核",f:["控制细胞","控制中心","含DNA并调控活动"]}},
+ mitochondrion:{en:{b:"mitochondrion",f:["makes energy","produces ATP","site of aerobic respiration"]},
+                es:{b:"mitocondria",f:["produce energía","produce ATP","sitio de respiración aeróbica"]},
+                fr:{b:"mitochondrie",f:["produit de l'énergie","produit de l'ATP","lieu de respiration aérobie"]},
+                ar:{b:"ميتوكندريا",f:["تصنع الطاقة","تنتج ATP","موقع التنفس الهوائي"]},
+                zh:{b:"线粒体",f:["产生能量","生成ATP","有氧呼吸场所"]}},
+ ribosome:{en:{b:"ribosome",f:["makes proteins","protein builder","site of protein synthesis"]},
+           es:{b:"ribosoma",f:["hace proteínas","constructor de proteínas","sitio de síntesis de proteínas"]},
+           fr:{b:"ribosome",f:["fabrique des protéines","constructeur de protéines","lieu de synthèse protéique"]},
+           ar:{b:"ريبوسوم",f:["يصنع البروتين","بناء البروتين","موقع تخليق البروتين"]},
+           zh:{b:"核糖体",f:["合成蛋白质","蛋白质建造者","蛋白质合成场所"]}},
+ vacuole:{en:{b:"vacuole",f:["stores water","storage sac","stores water & waste"]},
+          es:{b:"vacuola",f:["almacena agua","saco de almacenamiento","almacena agua y desechos"]},
+          fr:{b:"vacuole",f:["stocke l'eau","sac de stockage","stocke l'eau et les déchets"]},
+          ar:{b:"فجوة",f:["تخزن الماء","كيس تخزين","تخزن الماء والفضلات"]},
+          zh:{b:"液泡",f:["储存水分","储存囊泡","储存水分和废物"]}},
+ membrane:{en:{b:"cell membrane",f:["protects cell","selective barrier","regulates entry & exit"]},
+           es:{b:"membrana celular",f:["protege la célula","barrera selectiva","regula entrada y salida"]},
+           fr:{b:"membrane cellulaire",f:["protège la cellule","barrière sélective","régule l'entrée & sortie"]},
+           ar:{b:"غشاء خلوي",f:["يحمي الخلية","حاجز انتقائي","ينظم الدخول والخروج"]},
+           zh:{b:"细胞膜",f:["保护细胞","选择性屏障","调控进出"]}}
+};
+
+let first=null,second=null,lock=false,matches=0,attempts=0;
+const board=document.getElementById("board");
+
+function $(id){return document.getElementById(id);}
+function lang(){return $("lang").value;}
+function level(){return $("level").value;}
+function stat(){ $("stats").innerText=`Matches: ${matches}/5 | Attempts: ${attempts}`;}
+
+function deck(){
+ const cards=[];
+ Object.keys(data).forEach(key=>{
+   const entry=data[key][lang()];
+   cards.push({id:key,t:"structure",txt:entry.b});
+   const idx= level()==="basic"?0:level()==="intermediate"?1:2;
+   cards.push({id:key,t:"function",txt:entry.f[idx]});
+ });
+ return cards.sort(()=>Math.random()-0.5);
+}
+
+function build(){
+ board.innerHTML="";first=second=null;matches=0;attempts=0;stat();
+ deck().forEach(d=>{
+   const card=document.createElement("div");
+   card.className="card";
+   card.dataset.id=d.id;
+   card.dataset.t=d.t;
+   card.innerHTML=`<div class="inner">
+     <div class="face front"></div>
+     <div class="face back">${d.txt}</div>
+   </div>`;
+   card.addEventListener("click",click);
+   board.appendChild(card);
+ });
+}
+
+function click(e){
+ if(lock) return;
+ const card=e.currentTarget;
+ if(card.classList.contains("flipped")||card.classList.contains("matched")) return;
+ card.classList.add("flipped");
+ if(!first){first=card;return;}
+ second=card;lock=true;attempts++;setTimeout(check,pauseDuration);
+}
+
+function colorMatch(card){
+ const clr=palette[card.dataset.id]||"#e0e0e0";
+ card.querySelector(".back").style.background=clr;
+}
+
+function check(){
+ if(first.dataset.id===second.dataset.id && first.dataset.t!==second.dataset.t){
+   [first,second].forEach(c=>{
+     c.classList.add("matched");
+     colorMatch(c);
+   });
+   matches++;
+   if(matches===5) setTimeout(()=>alert("Great job!"),300);
+ } else {
+   first.classList.remove("flipped");
+   second.classList.remove("flipped");
+ }
+ first=second=null;lock=false;stat();
+}
+
+$("generate").addEventListener("click",build);
+$("lang").addEventListener("change",build);
+$("level").addEventListener("change",build);
+build();
+</script>
+</body>
+</html>
