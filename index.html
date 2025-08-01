@@ -1,51 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Biology Class Home</title>
-
-  <!-- Simple, high-contrast styling that reads well on phones or laptops -->
-  <style>
-    body {font-family: Arial, sans-serif; line-height:1.6; max-width:800px; margin:auto; padding:1rem;}
-    h1   {color:#2c7a7b; text-align:center;}
-    nav ul {list-style:none; padding:0;}
-    nav li {margin:0.5rem 0;}
-    a    {color:#1a202c; text-decoration:none; padding:0.5rem 0.75rem;
-          border:2px solid #2c7a7b; border-radius:8px; display:inline-block;}
-    a:hover {background:#2c7a7b; color:#fff;}
-    .tip {background:#e6fffa; border-left:6px solid #38b2ac; padding:0.75rem; margin:1rem 0;}
-  </style>
+<meta charset="UTF-8">
+<title>Biology Class – Interactive Do-Nows</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --primary:#0077b6;
+  --accent:#90e0ef;
+  --bg:#f8f9fa;
+}
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+body{margin:0;background:var(--bg);color:#212529;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
+header{width:100%;background:var(--primary);color:#fff;padding:18px 12px;text-align:center;}
+h1{margin:0;font-size:1.9rem;}
+header p{margin:6px 0 0;font-size:1rem;}
+main{width:100%;max-width:900px;display:grid;gap:18px;padding:24px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+.card{background:#fff;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:20px;display:flex;flex-direction:column;align-items:center;transition:transform .2s;}
+.card:hover{transform:translateY(-4px);}
+.card h2{margin:12px 0 8px;font-size:1.2rem;color:var(--primary);}
+.card p{margin:0 0 16px;font-size:0.9rem;text-align:center;}
+.card a{background:var(--primary);color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;}
+.card a:hover{background:#023e8a;}
+footer{margin-top:auto;padding:14px;font-size:0.8rem;color:#868e96;text-align:center;}
+</style>
 </head>
-
 <body>
-  <h1>Welcome to Biology!</h1>
+<header>
+  <h1>Biology Class – Daily Warm‑Up Games</h1>
+  <p>Interactive practice for Cells & Scientific Inquiry</p>
+</header>
 
-  <p>
-    Hello students! This page will guide you through our biology adventures.
-    Click an activity below to start learning.
-  </p>
+<main>
+  <section class="card">
+    <h2>Organelle Matching</h2>
+    <p>Drag each organelle name to its correct function.</p>
+    <a href="https://comfyu1.github.io/Games/OrganelleMatching.html" target="_blank" rel="noopener">Play</a>
+  </section>
 
-  <nav>
-    <ul>
-      <li>
-        <a href="https://comfyu1.github.io/Games/Hypothesis.html" target="_blank">
-          🧪 Hypothesis Game — Practice Making Predictions
-        </a>
-      </li>
-      <li><a href="#activity2">🔬 Activity 2 — Coming Soon</a></li>
-      <li><a href="#activity3">🌱 Activity 3 — Coming Soon</a></li>
-    </ul>
-  </nav>
+  <section class="card">
+    <h2>Organelle Memory</h2>
+    <p>Flip cards to match structures with their functions.</p>
+    <a href="https://comfyu1.github.io/Games/OrganelleMemory.html" target="_blank" rel="noopener">Play</a>
+  </section>
 
-  <div class="tip">
-    <strong>Tip for English Learners:</strong>
-    You can right-click this page and choose “Translate to …” to view it in your
-    language. Feel free to ask questions anytime!
-  </div>
+  <section class="card">
+    <h2>Hypothesis Builder</h2>
+    <p>Complete sentences to form scientific hypotheses.</p>
+    <a href="https://comfyu1.github.io/Games/Hypothesis.html" target="_blank" rel="noopener">Play</a>
+  </section>
+</main>
 
-  <footer style="text-align:center; font-size:0.9rem;">
-    © 2025 Biology Class · International High School at Union Square
-  </footer>
+<footer>&copy; 2025 Biology Class • International HS at Union Square</footer>
 </body>
 </html>
