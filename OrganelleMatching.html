@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Drag-and-Match: Organelle ↔ Function</title>
+<style>
+:root{--primary:#0096c7;--correct:#80ed99;--wrong:#ffd6a5;--bg:#f1f3f5;}
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+body{margin:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;color:#212529;}
+header{width:100%;text-align:center;background:var(--primary);color:#fff;padding:10px;}
+.controls{margin:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.controls select,.controls button{padding:6px 12px;border:1px solid #ced4da;border-radius:6px;cursor:pointer;font-size:0.9rem;}
+.controls button{background:var(--primary);color:#fff;border:none;}
+#game{display:flex;gap:24px;flex-wrap:wrap;width:100%;max-width:900px;padding:0 12px 40px;}
+#names,#functions{flex:1 1 300px;display:flex;flex-direction:column;gap:12px;}
+.card{background:#fff;border:2px solid #adb5bd;border-radius:8px;padding:10px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.1);user-select:none;transition:background .3s,border .3s;}
+.draggable{cursor:grab;}
+.draggable:active{cursor:grabbing;}
+.dropzone{min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.dropzone.pending{background:#e9ecef;border-style:dashed;}
+.dropzone.matched{background:var(--correct);border-color:#38a3a5;color:#064635;}
+.dropzone.wrong{background:var(--wrong);border-color:#ff595e;}
+small{font-size:0.8rem;margin-top:4px;}
+#score{font-weight:bold;margin-top:6px;}
+@media(max-width:700px){#game{flex-direction:column;}}
+</style>
+</head>
+<body>
+<header><h2 id="title">Match Organelles to Their Functions!</h2></header>
+
+<div class="controls">
+<label>Language</label>
+<select id="lang">
+ <option value="en">English</option>
+ <option value="es">Español</option>
+ <option value="fr">Français</option>
+ <option value="ar">العربية</option>
+ <option value="zh">中文</option>
+</select>
+<label>Level</label>
+<select id="level">
+ <option value="basic">Basic</option>
+ <option value="intermediate">Intermediate</option>
+ <option value="advanced">Advanced</option>
+</select>
+<button id="new">New Round</button>
+<button id="check">Check Answers</button>
+<span id="score"></span>
+</div>
+
+<div id="game">
+  <div id="names"></div>
+  <div id="functions"></div>
+</div>
+
+<footer style="margin-bottom:20px;font-size:0.8rem;color:#868e96;">&copy; 2025 – Drag-and-Match Game</footer>
+
+<script>
+const data={
+ nucleus:{en:["nucleus","controls the cell"],es:["núcleo","controla la célula"],fr:["noyau","contrôle la cellule"],ar:["نواة","تتحكم في الخلية"],zh:["细胞核","控制细胞"]},
+ mitochondrion:{en:["mitochondrion","makes energy"],es:["mitocondria","produce energía"],fr:["mitochondrie","produit de l'énergie"],ar:["ميتوكندريا","تصنع الطاقة"],zh:["线粒体","产生能量"]},
+ ribosome:{en:["ribosome","makes proteins"],es:["ribosoma","hace proteínas"],fr:["ribosome","fabrique des protéines"],ar:["ريبوسوم","يصنع البروتين"],zh:["核糖体","合成蛋白质"]},
+ vacuole:{en:["vacuole","stores water"],es:["vacuola","almacena agua"],fr:["vacuole","stocke l'eau"],ar:["فجوة","تخزن الماء"],zh:["液泡","储存水分"]},
+ membrane:{en:["cell membrane","protects cell"],es:["membrana celular","protege la célula"],fr:["membrane cellulaire","protège la cellule"],ar:["غشاء خلوي","يحمي الخلية"],zh:["细胞膜","保护细胞"]}
+};
+
+let score=0,total=5;
+const namesBox=document.getElementById("names");
+const funcBox=document.getElementById("functions");
+const scoreSpan=document.getElementById("score");
+
+function $(id){return document.getElementById(id);}
+function lang(){return $("lang").value;}
+
+function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
+
+function newRound(){
+ namesBox.innerHTML=""; funcBox.innerHTML="";
+ score=0;updateScore();
+ const pairs=Object.entries(data).map(([id,obj])=>{
+   return {id:id,name:obj[lang()][0],func:obj[lang()][1]};
+ });
+ shuffle(pairs).forEach(p=>{
+   const div=document.createElement("div");
+   div.className="card draggable";
+   div.textContent=p.name;
+   div.draggable=true;
+   div.id="drag_"+p.id;
+   div.dataset.id=p.id;
+   div.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",e.target.id));
+   namesBox.appendChild(div);
+ });
+ shuffle(pairs).forEach(p=>{
+   const div=document.createElement("div");
+   div.className="card dropzone pending";
+   div.dataset.accept=p.id;
+   div.innerHTML=p.func;
+   div.addEventListener("dragover",e=>e.preventDefault());
+   div.addEventListener("drop",onDrop);
+   funcBox.appendChild(div);
+ });
+}
+
+function onDrop(e){
+ e.preventDefault();
+ const dragId=e.dataTransfer.getData("text/plain");
+ const card=document.getElementById(dragId);
+ if(!card) return;
+ // move card into zone
+ if(this.querySelector(".draggable")){
+   const existing=this.querySelector(".draggable");
+   namesBox.appendChild(existing);
+ }
+ this.appendChild(card);
+ this.classList.remove("matched","wrong","pending");
+}
+
+function checkAnswers(){
+ let correct=0;
+ document.querySelectorAll(".dropzone").forEach(zone=>{
+   // clear old explanation
+   zone.querySelectorAll("small").forEach(s=>s.remove());
+   const funcText= zone.firstChild.textContent; // original function text
+   const placed=zone.querySelector(".draggable");
+   if(placed && placed.dataset.id===zone.dataset.accept){
+     zone.classList.remove("wrong","pending");
+     zone.classList.add("matched");
+     const msg=document.createElement("small");
+     msg.textContent=`Yes, the ${placed.textContent} ${funcText}!`;
+     zone.appendChild(msg);
+     correct++;
+   } else {
+     zone.classList.remove("matched","pending");
+     zone.classList.add("wrong");
+     const correctName=data[zone.dataset.accept][lang()][0];
+     let msgText="";
+     if(placed){
+       msgText=`No, actually the ${correctName} ${funcText}, not the ${placed.textContent}.`;
+     } else {
+       msgText=`No, actually the ${correctName} ${funcText}.`;
+     }
+     const msg=document.createElement("small");
+     msg.textContent=msgText;
+     zone.appendChild(msg);
+   }
+ });
+ score=correct;updateScore();
+ if(score===total){setTimeout(()=>alert("Great job – all matched!"),300);}
+}
+
+function updateScore(){scoreSpan.textContent=`Score: ${score}/${total}`;}
+
+document.getElementById("new").addEventListener("click",newRound);
+document.getElementById("check").addEventListener("click",checkAnswers);
+document.getElementById("lang").addEventListener("change",newRound);
+newRound();
+</script>
+</body>
+</html>
