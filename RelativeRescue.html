@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Definition Smash – Progressive Levels</title>
+<title>Relative Rescue – Progressive Levels</title>
 <style>
   :root{
     --bg1:#e0f7ff;--bg2:#ffeef9;--ground-h:8px;
@@ -17,10 +17,8 @@
     background:radial-gradient(circle at 30% 30%,var(--bg1) 0%,var(--bg2) 100%);
     display:flex;flex-direction:column;overflow:hidden;
   }
-  header{
-    background:rgba(255,255,255,.85);backdrop-filter:blur(6px);
-    padding:.5rem 1rem;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:space-between;z-index:10;
-  }
+  #banner{background:linear-gradient(90deg,#15cce6,#8f7cf9);color:#fff;text-align:center;font-size:1.8rem;font-weight:700;letter-spacing:1px;padding:.6rem 1rem;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:15;}
+  header{background:rgba(255,255,255,.85);backdrop-filter:blur(6px);padding:.5rem 1rem;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:space-between;z-index:10;}
   select,button{padding:.4rem .6rem;font-size:.9rem;border-radius:6px;border:1px solid #555;cursor:pointer;}
   #playArea{flex:1;position:relative;overflow:hidden;}
   #ground{position:absolute;inset-x:0;bottom:0;height:var(--ground-h);background:var(--ground-color);}
@@ -35,6 +33,7 @@
 </style>
 </head>
 <body>
+<div id="banner">Relative Rescue</div>
 <header>
   <div>Score <span id="score">0</span> | Best <span id="best">0</span></div>
   <div id="lives">❤️❤️❤️</div>
@@ -42,6 +41,7 @@
   <label>Level <select id="levelSel"></select></label>
   <button id="restartBtn">Restart</button>
   <button id="stopBtn">Stop</button>
+  <button id="homeBtn">Home</button>
 </header>
 <div id="playArea">
   <div id="ground"></div>
@@ -55,7 +55,7 @@ const WORDS={mother:{def:'Female parent'},father:{def:'Male parent'},brother:{de
 const LEVELS=[{label:'Level 1',words:['mother','father'],showWord:true},{label:'Level 2',words:['mother','father','brother','sister'],showWord:false},{label:'Level 3',words:['aunt','uncle','grandmother','grandfather'],showWord:false},{label:'Level 4',words:['cousin','niece','nephew','grandchild'],showWord:false},{label:'Level 5',words:['granddaughter','grandson','great uncle','great aunt'],showWord:false},{label:'Level 6',words:['great grandfather','great grandmother','maternal aunt','paternal uncle','stepbrother','stepsister'],showWord:false},{label:'Level 7',words:['stepmother','stepfather','half brother','half sister','mother-in-law','father-in-law'],showWord:false},{label:'Level 8',words:['brother-in-law','sister-in-law','daughter-in-law','son-in-law','great uncle','great aunt'],showWord:false},{label:'Level 9',words:['mother','father','brother','sister','cousin','grandmother','grandfather','aunt'],showWord:false},{label:'Level 10',words:['great grandfather','great grandmother','great uncle','great aunt','maternal aunt','paternal uncle','stepbrother','stepsister'],showWord:false}];
 
 // ---------- STATE ----------
-let bricks=[];let spawnTimer=null;let spawnedCount=0;let score=0;let lives=3;let best=+localStorage.getItem('bestSmash')||0;let paused=false;
+let bricks=[];let spawnTimer=null;let spawnedCount=0;let score=0;let lives=3;let best=+localStorage.getItem('relativeRescueBest')||0;let paused=false;
 
 // ---------- ELEMENTS ----------
 const playArea=document.getElementById('playArea');
@@ -66,12 +66,13 @@ const bestSpan=document.getElementById('best');
 const livesDiv=document.getElementById('lives');
 const restartBtn=document.getElementById('restartBtn');
 const stopBtn=document.getElementById('stopBtn');
+const homeBtn=document.getElementById('homeBtn');
 const popup=document.getElementById('popup');
 const finalMsg=document.getElementById('finalMsg');
 const playAgain=document.getElementById('playAgain');
 
-// ---------- INIT DROPDOWN ----------
-LEVELS.forEach((lvl,i)=>{const opt=document.createElement('option');opt.value=i;opt.textContent=lvl.label;levelSel.appendChild(opt);});
+// ---------- INITIALIZE LEVEL DROPDOWN ----------
+LEVELS.forEach((lvl,i)=>{const opt=document.createElement('option');opt.value=i;opt.textContent=lvl.label;levelSel.appendChild(opt);} );
 bestSpan.textContent=best;
 
 // ---------- HELPERS ----------
@@ -82,29 +83,31 @@ const brickColor=i=>i<4?'var(--brick-1)':i<6?'var(--brick-2)':i<8?'var(--brick-3
 // ---------- GAME FUNCTIONS ----------
 function buildBank(){bank.innerHTML='';LEVELS[+levelSel.value].words.forEach(w=>{const t=document.createElement('div');t.className='tile';t.textContent=w;t.onclick=()=>chooseWord(w,t);bank.appendChild(t);});}
 
-function spawnBrick(){const idx=+levelSel.value,lvl=LEVELS[idx],word=rand(lvl.words);const brick=document.createElement('div');brick.className='brick';brick.dataset.word=word;brick.style.background=brickColor(idx);brick.textContent=lvl.showWord?word:WORDS[word].def;playArea.appendChild(brick);const maxLeft=Math.max(5,playArea.clientWidth-brick.offsetWidth-10);brick.style.left=Math.floor(Math.random()*maxLeft)+'px';brick.style.top='0px';const speed=0.2+(spawnedCount>10?(spawnedCount-10)*0.02:0);bricks.push({el:brick,speed});spawnedCount++;}
+function spawnBrick(){const idx=+levelSel.value;const lvl=LEVELS[idx];const word=rand(lvl.words);const brick=document.createElement('div');brick.className='brick';brick.dataset.word=word;brick.style.background=brickColor(idx);brick.textContent=lvl.showWord?word:WORDS[word].def;playArea.appendChild(brick);const maxLeft=Math.max(5,playArea.clientWidth-brick.offsetWidth-10);brick.style.left=Math.floor(Math.random()*maxLeft)+'px';brick.style.top='0px';const speed=0.2+(spawnedCount>10?(spawnedCount-10)*0.02:0);bricks.push({el:brick,speed});spawnedCount++;}
 
 function startSpawning(){clearInterval(spawnTimer);spawnBrick();spawnTimer=setInterval(()=>{if(!paused && bricks.length<3)spawnBrick();},6000);}
 
-function chooseWord(word,tile){const idx=bricks.findIndex(b=>b.el.dataset.word===word);if(idx>-1){explode(bricks[idx].el);bricks.splice(idx,1);score++;scoreSpan.textContent=score;if(score>best){best=score;bestSpan.textContent=best;localStorage.setItem('bestSmash',best);} }else tile.style.transform='scale(0.9)';}
+function chooseWord(word,tile){const idx=bricks.findIndex(b=>b.el.dataset.word===word);if(idx>-1){explode(bricks[idx].el);bricks.splice(idx,1);score++;scoreSpan.textContent=score;if(score>best){best=score;bestSpan.textContent=best;localStorage.setItem('relativeRescueBest',best);} }else tile.style.transform='scale(0.9)';}
 
-function explode(el){for(let i=0;i<16;i++){const c=document.createElement('div');c.className='confetti';c.style.background=`hsl(${Math.random()*360},90%,60%)`;const {left,top,width}=el.getBoundingClientRect();c.style.left=left+width/2+'px';c.style.top=top+'px';const ang=Math.random()*Math.PI*2,dist=Math.random()*100+30;const x=Math.cos(ang)*dist,y=Math.sin(ang)*dist;c.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${x}px,${y}px)`,opacity:0}],{duration:600,easing:'ease-out'});playArea.appendChild(c);setTimeout(()=>c.remove(),650);}el.remove();}
+function explode(el){for(let i=0;i<16;i++){const c=document.createElement('div');c.className='confetti';c.style.background=`hsl(${Math.random()*360},90%,60%)`;const rect=el.getBoundingClientRect();c.style.left=(rect.left+rect.width/2)+'px';c.style.top=rect.top+'px';const ang=Math.random()*Math.PI*2,dist=Math.random()*100+30;const x=Math.cos(ang)*dist,y=Math.sin(ang)*dist;c.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${x}px,${y}px)`,opacity:0}],{duration:650,easing:'ease-out'});playArea.appendChild(c);setTimeout(()=>c.remove(),660);}el.remove();}
 
-function failBrick(el){explode(el);lives--;updateLives();if(lives===0)endGame();}
+function failBrick(el){explode(el);lives--;updateLives();if(lives===0)gameOver();}
 
 function resetGame(){bricks.forEach(b=>b.el.remove());bricks=[];score=0;lives=3;spawnedCount=0;paused=false;stopBtn.textContent='Stop';updateLives();scoreSpan.textContent=score;popup.style.display='none';buildBank();startSpawning();}
 
-function endGame(){clearInterval(spawnTimer);bricks.forEach(b=>b.el.remove());bricks=[];finalMsg.textContent=`Game Over! Score: ${score}`;popup.style.display='flex';}
+function gameOver(){clearInterval(spawnTimer);bricks.forEach(b=>b.el.remove());bricks=[];finalMsg.textContent=`Game Over! Score: ${score}`;popup.style.display='flex';}
 
 function togglePause(){paused=!paused;stopBtn.textContent=paused?'Resume':'Stop';}
 
-function gameLoop(){if(!paused){const groundY=playArea.clientHeight-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ground-h'));bricks.forEach((b,idx)=>{let y=parseFloat(b.el.style.top)||0;y+=b.speed;b.el.style.top=y+'px';if(y+b.el.offsetHeight>=groundY){failBrick(b.el);bricks.splice(idx,1);}});}requestAnimationFrame(gameLoop);}
+function gameLoop(){if(!paused){const groundY=playArea.clientHeight-document.documentElement.style.getPropertyValue('--ground-h').replace('px','')-0;const ground=playArea.clientHeight-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ground-h'));bricks.forEach((b,i)=>{let y=parseFloat(b.el.style.top)||0;y+=b.speed;b.el.style.top=y+'px';if(y+b.el.offsetHeight>=ground){failBrick(b.el);bricks.splice(i,1);}});}requestAnimationFrame(gameLoop);}
 
 // ---------- EVENT LISTENERS ----------
-restartBtn.onclick=resetGame;playAgain.onclick=resetGame;levelSel.onchange=resetGame;stopBtn.onclick=togglePause;
-
-// ---------- INITIALIZE ----------
-updateLives();buildBank();startSpawning();gameLoop();
+restartBtn.onclick=resetGame;playAgain.onclick=resetGame;levelSel.onchange=resetGame;stopBtn.onclick=togglePause;homeBtn.onclick=()=>{window.location.href='https://comfyu1.github.io/Games/';};
+// ---------- INITIALIZATION ----------
+updateLives();
+buildBank();
+startSpawning();
+gameLoop();
 </script>
 </body>
 </html>
