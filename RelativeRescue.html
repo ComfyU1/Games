@@ -1,62 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Relative Rescue – Progressive Levels</title>
-  <!-- Shared Classic Warm‑Up Styles -->
- <!-- > <link rel="stylesheet" href="css/ClassicBlue.css"> -->
-    <link rel="stylesheet" href="css/photon-neon-grid.css">
-
-  <!-- Game‑specific styles remain inline so visuals stay intact -->
-  <style>
-    :root{
-      --bg1:#e0f7ff;--bg2:#ffeef9;--ground-h:8px;
-      --brick-1:#8dd6ff;--brick-2:#15cce6;--brick-3:#fb9d5c;--brick-4:#9be15d;
-      --ground-color:#444;
-    }
-    *{box-sizing:border-box;margin:0;padding:0;}
-    html,body{height:100%;}
-    body{
-      font-family:system-ui,Segoe UI,Helvetica,Arial,sans-serif;
-      background:radial-gradient(circle at 30% 30%,var(--bg1) 0%,var(--bg2) 100%);
-      display:flex;flex-direction:column;overflow:hidden;
-    }
-    #banner{background:linear-gradient(90deg,#15cce6,#8f7cf9);color:#fff;text-align:center;font-size:1.8rem;font-weight:700;letter-spacing:1px;padding:.6rem 1rem;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:15;}
-    header{background:rgba(255,255,255,.85);backdrop-filter:blur(6px);padding:.5rem 1rem;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:space-between;z-index:10;}
-    select,button{padding:.4rem .6rem;font-size:.9rem;border-radius:6px;border:1px solid #555;cursor:pointer;}
-    #playArea{flex:1;position:relative;overflow:hidden;}
-    #ground{position:absolute;inset-x:0;bottom:0;height:var(--ground-h);background:var(--ground-color);}
-    .brick{position:absolute;padding:.7rem 1rem;color:#fff;border-radius:8px;font-weight:600;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,.25);user-select:none;pointer-events:none;}
-    #bank{padding:.4rem;background:rgba(255,255,255,.75);backdrop-filter:blur(4px);display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;}
-    .tile{padding:.35rem .7rem;border-radius:6px;background:#fff;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.15);cursor:pointer;transition:transform .1s;}
-    .tile:hover{transform:scale(1.08);background:#eef;}
-    #lives{font-size:1.2rem;}
-    .confetti{position:absolute;width:6px;height:6px;border-radius:50%;opacity:.9;pointer-events:none;}
-    #popup{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-size:1.2rem;color:#fff;z-index:20;display:none;}
-    #popup button{padding:.6rem 1.2rem;font-size:1.1rem;}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Relative Rescue – Progressive Levels</title>
+<style>
+  :root{
+    --bg1:#e0f7ff;--bg2:#ffeef9;--ground-h:8px;
+    --brick-1:#8dd6ff;--brick-2:#15cce6;--brick-3:#fb9d5c;--brick-4:#9be15d;
+    --ground-color:#444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:system-ui,Segoe UI,Helvetica,Arial,sans-serif;
+    background:radial-gradient(circle at 30% 30%,var(--bg1) 0%,var(--bg2) 100%);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  #banner{background:linear-gradient(90deg,#15cce6,#8f7cf9);color:#fff;text-align:center;font-size:1.8rem;font-weight:700;letter-spacing:1px;padding:.6rem 1rem;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:15;}
+  header{background:rgba(255,255,255,.85);backdrop-filter:blur(6px);padding:.5rem 1rem;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:space-between;z-index:10;}
+  select,button{padding:.4rem .6rem;font-size:.9rem;border-radius:6px;border:1px solid #555;cursor:pointer;}
+  #playArea{flex:1;position:relative;overflow:hidden;}
+  #ground{position:absolute;inset-x:0;bottom:0;height:var(--ground-h);background:var(--ground-color);}
+  .brick{position:absolute;padding:.7rem 1rem;color:#fff;border-radius:8px;font-weight:600;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,.25);user-select:none;pointer-events:none;}
+  #bank{padding:.4rem;background:rgba(255,255,255,.75);backdrop-filter:blur(4px);display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;}
+  .tile{padding:.35rem .7rem;border-radius:6px;background:#fff;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.15);cursor:pointer;transition:transform .1s;}
+  .tile:hover{transform:scale(1.08);background:#eef;}
+  #lives{font-size:1.2rem;}
+  .confetti{position:absolute;width:6px;height:6px;border-radius:50%;opacity:.9;pointer-events:none;}
+  #popup{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-size:1.2rem;color:#fff;z-index:20;display:none;}
+  #popup button{padding:.6rem 1.2rem;font-size:1.1rem;}
+</style>
 </head>
 <body>
-  <div id="banner">Relative Rescue</div>
-  <header>
-    <div>Score <span id="score">0</span> | Best <span id="best">0</span></div>
-    <div id="lives">❤️❤️❤️</div>
-    <div style="flex:1"></div>
-    <label>Level <select id="levelSel"></select></label>
-    <button id="restartBtn">Restart</button>
-    <button id="stopBtn">Stop</button>
-    <button id="homeBtn">Home</button>
-  </header>
-  <div id="playArea">
-    <div id="ground"></div>
-    <div id="popup"><div id="finalMsg"></div><button id="playAgain">Play Again</button></div>
-  </div>
-  <div id="bank"></div>
+<div id="banner">Relative Rescue</div>
+<header>
+  <div>Score <span id="score">0</span> | Best <span id="best">0</span></div>
+  <div id="lives">❤️❤️❤️</div>
+  <div style="flex:1"></div>
+  <label>Level <select id="levelSel"></select></label>
+  <button id="restartBtn">Restart</button>
+  <button id="stopBtn">Stop</button>
+  <button id="homeBtn">Home</button>
+</header>
+<div id="playArea">
+  <div id="ground"></div>
+  <div id="popup"><div id="finalMsg"></div><button id="playAgain">Play Again</button></div>
+</div>
+<div id="bank"></div>
+<script>
+// ---------- DATA ----------
+const WORDS={mother:{def:'Female parent'},father:{def:'Male parent'},brother:{def:'Male sibling'},sister:{def:'Female sibling'},aunt:{def:'Sister of my parent'},uncle:{def:'Brother of my parent'},grandmother:{def:'Mother of my parent'},grandfather:{def:'Father of my parent'},cousin:{def:'Child of my aunt or uncle'},niece:{def:'Daughter of my sibling'},nephew:{def:'Son of my sibling'},grandchild:{def:'Child of my child'},granddaughter:{def:'Daughter of my child'},grandson:{def:'Son of my child'},'great uncle':{def:'Brother of my grandparent'},'great aunt':{def:'Sister of my grandparent'},'great grandfather':{def:'Father of my grandparent'},'great grandmother':{def:'Mother of my grandparent'},'maternal aunt':{def:'Aunt on my mother\'s side'},'paternal uncle':{def:'Uncle on my father\'s side'},stepbrother:{def:'Son of my stepparent'},stepsister:{def:'Daughter of my stepparent'},stepfather:{def:'Husband of my mother who is not my biological father'},stepmother:{def:'Wife of my father who is not my biological mother'},'half brother':{def:'Male sibling sharing one parent'},'half sister':{def:'Female sibling sharing one parent'},'mother-in-law':{def:'Mother of my spouse'},'father-in-law':{def:'Father of my spouse'},'brother-in-law':{def:'Brother of my spouse'},'sister-in-law':{def:'Sister of my spouse'},'son-in-law':{def:'Husband of my daughter'},'daughter-in-law':{def:'Wife of my son'}};
 
-  <!-- Game logic script unchanged -->
-  <script>
-  /* ... existing JavaScript code (unchanged) ... */
-  </script>
+const LEVELS=[{label:'Level 1',words:['mother','father'],showWord:true},{label:'Level 2',words:['mother','father','brother','sister'],showWord:false},{label:'Level 3',words:['aunt','uncle','grandmother','grandfather'],showWord:false},{label:'Level 4',words:['cousin','niece','nephew','grandchild'],showWord:false},{label:'Level 5',words:['granddaughter','grandson','great uncle','great aunt'],showWord:false},{label:'Level 6',words:['great grandfather','great grandmother','maternal aunt','paternal uncle','stepbrother','stepsister'],showWord:false},{label:'Level 7',words:['stepmother','stepfather','half brother','half sister','mother-in-law','father-in-law'],showWord:false},{label:'Level 8',words:['brother-in-law','sister-in-law','daughter-in-law','son-in-law','great uncle','great aunt'],showWord:false},{label:'Level 9',words:['mother','father','brother','sister','cousin','grandmother','grandfather','aunt'],showWord:false},{label:'Level 10',words:['great grandfather','great grandmother','great uncle','great aunt','maternal aunt','paternal uncle','stepbrother','stepsister'],showWord:false}];
+
+// ---------- STATE ----------
+let bricks=[];let spawnTimer=null;let spawnedCount=0;let score=0;let lives=3;let best=+localStorage.getItem('relativeRescueBest')||0;let paused=false;
+
+// ---------- ELEMENTS ----------
+const playArea=document.getElementById('playArea');
+const bank=document.getElementById('bank');
+const levelSel=document.getElementById('levelSel');
+const scoreSpan=document.getElementById('score');
+const bestSpan=document.getElementById('best');
+const livesDiv=document.getElementById('lives');
+const restartBtn=document.getElementById('restartBtn');
+const stopBtn=document.getElementById('stopBtn');
+const homeBtn=document.getElementById('homeBtn');
+const popup=document.getElementById('popup');
+const finalMsg=document.getElementById('finalMsg');
+const playAgain=document.getElementById('playAgain');
+
+// ---------- INITIALIZE LEVEL DROPDOWN ----------
+LEVELS.forEach((lvl,i)=>{const opt=document.createElement('option');opt.value=i;opt.textContent=lvl.label;levelSel.appendChild(opt);} );
+bestSpan.textContent=best;
+
+// ---------- HELPERS ----------
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const updateLives=()=>{livesDiv.textContent='❤️'.repeat(lives)+'🤍'.repeat(3-lives);} ;
+const brickColor=i=>i<4?'var(--brick-1)':i<6?'var(--brick-2)':i<8?'var(--brick-3)':'var(--brick-4)';
+
+// ---------- GAME FUNCTIONS ----------
+function buildBank(){bank.innerHTML='';LEVELS[+levelSel.value].words.forEach(w=>{const t=document.createElement('div');t.className='tile';t.textContent=w;t.onclick=()=>chooseWord(w,t);bank.appendChild(t);});}
+
+function spawnBrick(){const idx=+levelSel.value;const lvl=LEVELS[idx];const word=rand(lvl.words);const brick=document.createElement('div');brick.className='brick';brick.dataset.word=word;brick.style.background=brickColor(idx);brick.textContent=lvl.showWord?word:WORDS[word].def;playArea.appendChild(brick);const maxLeft=Math.max(5,playArea.clientWidth-brick.offsetWidth-10);brick.style.left=Math.floor(Math.random()*maxLeft)+'px';brick.style.top='0px';const speed=0.2+(spawnedCount>10?(spawnedCount-10)*0.02:0);bricks.push({el:brick,speed});spawnedCount++;}
+
+function startSpawning(){clearInterval(spawnTimer);spawnBrick();spawnTimer=setInterval(()=>{if(!paused && bricks.length<3)spawnBrick();},6000);}
+
+function chooseWord(word,tile){const idx=bricks.findIndex(b=>b.el.dataset.word===word);if(idx>-1){explode(bricks[idx].el);bricks.splice(idx,1);score++;scoreSpan.textContent=score;if(score>best){best=score;bestSpan.textContent=best;localStorage.setItem('relativeRescueBest',best);} }else tile.style.transform='scale(0.9)';}
+
+function explode(el){for(let i=0;i<16;i++){const c=document.createElement('div');c.className='confetti';c.style.background=`hsl(${Math.random()*360},90%,60%)`;const rect=el.getBoundingClientRect();c.style.left=(rect.left+rect.width/2)+'px';c.style.top=rect.top+'px';const ang=Math.random()*Math.PI*2,dist=Math.random()*100+30;const x=Math.cos(ang)*dist,y=Math.sin(ang)*dist;c.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${x}px,${y}px)`,opacity:0}],{duration:650,easing:'ease-out'});playArea.appendChild(c);setTimeout(()=>c.remove(),660);}el.remove();}
+
+function failBrick(el){explode(el);lives--;updateLives();if(lives===0)gameOver();}
+
+function resetGame(){bricks.forEach(b=>b.el.remove());bricks=[];score=0;lives=3;spawnedCount=0;paused=false;stopBtn.textContent='Stop';updateLives();scoreSpan.textContent=score;popup.style.display='none';buildBank();startSpawning();}
+
+function gameOver(){clearInterval(spawnTimer);bricks.forEach(b=>b.el.remove());bricks=[];finalMsg.textContent=`Game Over! Score: ${score}`;popup.style.display='flex';}
+
+function togglePause(){paused=!paused;stopBtn.textContent=paused?'Resume':'Stop';}
+
+function gameLoop(){if(!paused){const groundY=playArea.clientHeight-document.documentElement.style.getPropertyValue('--ground-h').replace('px','')-0;const ground=playArea.clientHeight-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ground-h'));bricks.forEach((b,i)=>{let y=parseFloat(b.el.style.top)||0;y+=b.speed;b.el.style.top=y+'px';if(y+b.el.offsetHeight>=ground){failBrick(b.el);bricks.splice(i,1);}});}requestAnimationFrame(gameLoop);}
+
+// ---------- EVENT LISTENERS ----------
+restartBtn.onclick=resetGame;playAgain.onclick=resetGame;levelSel.onchange=resetGame;stopBtn.onclick=togglePause;homeBtn.onclick=()=>{window.location.href='https://comfyu1.github.io/Games/';};
+// ---------- INITIALIZATION ----------
+updateLives();
+buildBank();
+startSpawning();
+gameLoop();
+</script>
 </body>
 </html>
