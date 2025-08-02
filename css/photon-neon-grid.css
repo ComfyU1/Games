@@ -1,0 +1,140 @@
+/* Photon Grid Neon v1.0  –  shared design sheet
+   Author: comfyu1  •  Date: 2025-08-02
+------------------------------------------------*/
+
+:root {
+  --neon-blue: #00E5FF;
+  --neon-pink: #FF2DA5;
+  --grid-line : #1F1F1F;
+  --bg-black  : #0D0D0D;
+  --text-body : #EAEAEA;
+  --text-sub  : #CCCCCC;
+  --text-dim  : #999999;
+  --glass     : rgba(255,255,255,.05);
+}
+
+/* ---- Global reset & base ---- */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg-black);
+  color:var(--text-body);
+  font-family:"Nunito Sans",system-ui,sans-serif;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+}
+
+/* ---- Animated grid backdrop ---- */
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(var(--grid-line)0 1px,transparent 1px 60px),
+    repeating-linear-gradient(90deg,var(--grid-line)0 1px,transparent 1px 60px);
+  animation:grid-move 40s linear infinite;
+  transform:rotateX(45deg);
+  z-index:-1;
+  pointer-events:none;
+}
+@keyframes grid-move{
+  from{transform:rotateX(45deg)translateY(0);}
+  to  {transform:rotateX(45deg)translateY(-60px);}
+}
+
+/* ---- Layout ---- */
+header{
+  padding:3rem 1rem 2rem;
+  text-align:center;
+}
+header h1{
+  font-size:2.5rem;
+  font-weight:700;
+  letter-spacing:1px;
+  color:var(--neon-blue);
+  text-shadow:0 0 8px var(--neon-blue);
+}
+header p{
+  margin-top:.75rem;
+  font-size:1.15rem;
+  color:var(--text-sub);
+  max-width:48ch;
+  margin-inline:auto;
+  line-height:1.4;
+}
+
+main{
+  width:100%;
+  max-width:1024px;
+  margin:0 auto;
+  padding:1rem 1rem 3rem;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:2rem;
+}
+
+/* ---- Game card ---- */
+.game-card{
+  background:var(--glass);
+  backdrop-filter:blur(3px);
+  padding:1.3rem 1.1rem 1.6rem;
+  border-radius:16px;
+  position:relative;
+  transition:transform .25s ease,box-shadow .25s ease;
+  min-height:180px;
+}
+.game-card:hover{
+  transform:translateY(-5px)scale(1.03);
+  box-shadow:0 10px 20px rgba(0,229,255,.35);
+}
+.game-card h3{
+  font-size:1.35rem;
+  color:var(--neon-pink);
+  text-shadow:0 0 6px var(--neon-pink);
+  margin-bottom:.35rem;
+}
+.game-card p{
+  font-size:1rem;
+  margin-bottom:.2rem;
+  color:var(--text-body);
+}
+
+/* ---- Play button ---- */
+.play-btn{
+  position:absolute;
+  bottom:1rem;
+  left:50%;
+  transform:translateX(-50%);
+  min-width:140px;
+  padding:.75rem 2rem;
+  font-size:1.05rem;
+  font-weight:700;
+  letter-spacing:.5px;
+  text-align:center;
+  text-decoration:none;
+  color:var(--neon-blue);
+  background:rgba(0,229,255,.12);
+  border:2px solid var(--neon-blue);
+  border-radius:10px;
+  transition:all .25s ease;
+}
+.play-btn:hover,
+.play-btn:focus{
+  background:var(--neon-blue);
+  color:var(--bg-black);
+  box-shadow:0 0 12px var(--neon-blue);
+}
+
+/* ---- Footer ---- */
+footer{
+  margin-top:auto;
+  padding:1.25rem 1rem;
+  text-align:center;
+  font-size:.95rem;
+  color:var(--text-dim);
+  background:rgba(255,255,255,.03);
+  backdrop-filter:blur(3px);
+}
+
+/* ---- Mobile tweak ---- */
+@media(max-width:480px){
+  header h1{font-size:1.9rem;}
+}
