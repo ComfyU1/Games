@@ -1,56 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Biology Class – Interactive Do-Nows</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-:root{
-  --primary:#0077b6;
-  --accent:#90e0ef;
-  --bg:#f8f9fa;
-}
-*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
-body{margin:0;background:var(--bg);color:#212529;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
-header{width:100%;background:var(--primary);color:#fff;padding:18px 12px;text-align:center;}
-h1{margin:0;font-size:1.9rem;}
-header p{margin:6px 0 0;font-size:1rem;}
-main{width:100%;max-width:900px;display:grid;gap:18px;padding:24px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
-.card{background:#fff;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:20px;display:flex;flex-direction:column;align-items:center;transition:transform .2s;}
-.card:hover{transform:translateY(-4px);}
-.card h2{margin:12px 0 8px;font-size:1.2rem;color:var(--primary);}
-.card p{margin:0 0 16px;font-size:0.9rem;text-align:center;}
-.card a{background:var(--primary);color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;}
-.card a:hover{background:#023e8a;}
-footer{margin-top:auto;padding:14px;font-size:0.8rem;color:#868e96;text-align:center;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Biology Class Games Hub</title>
+  <style>
+    body{
+      margin:0;font-family:system-ui,Segoe UI,Helvetica,Arial,sans-serif;
+      background:#f7fafc;color:#111;display:flex;flex-direction:column;min-height:100vh;
+    }
+    header{
+      background:linear-gradient(90deg,#15cce6,#8f7cf9);color:#fff;text-align:center;padding:1rem 0;
+      box-shadow:0 2px 6px rgba(0,0,0,.25);
+    }
+    main{flex:1;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem;gap:1.2rem;max-width:640px;margin:0 auto;}
+    a.game-link{
+      width:100%;background:#fff;border-radius:10px;padding:1rem 1.2rem;box-shadow:0 2px 4px rgba(0,0,0,.1);display:block;text-decoration:none;color:#111;font-weight:600;font-size:1.1rem;transition:transform .1s,box-shadow .2s;
+    }
+    a.game-link:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,.15);}
+    footer{background:#eee;text-align:center;padding:.6rem;font-size:.8rem;}
+  </style>
 </head>
 <body>
-<header>
-  <h1>Biology Class – Daily Warm‑Up Games</h1>
-  <p>Interactive practice for Cells & Scientific Inquiry</p>
-</header>
-
-<main>
-  <section class="card">
-    <h2>Organelle Matching</h2>
-    <p>Drag each organelle name to its correct function.</p>
-    <a href="https://comfyu1.github.io/Games/OrganelleMatching.html" target="_blank" rel="noopener">Play</a>
-  </section>
-
-  <section class="card">
-    <h2>Organelle Memory</h2>
-    <p>Flip cards to match structures with their functions.</p>
-    <a href="https://comfyu1.github.io/Games/OrganelleMemory.html" target="_blank" rel="noopener">Play</a>
-  </section>
-
-  <section class="card">
-    <h2>Hypothesis Builder</h2>
-    <p>Complete sentences to form scientific hypotheses.</p>
-    <a href="https://comfyu1.github.io/Games/Hypothesis.html" target="_blank" rel="noopener">Play</a>
-  </section>
-</main>
-
-<footer>&copy; 2025 Biology Class • International HS at Union Square</footer>
+  <header>
+    <h1>Biology Class Games</h1>
+  </header>
+  <main>
+    <!-- New game added at the top -->
+    <a class="game-link" href="RelativeRescue.html">🆕 Relative Rescue – Family Relationships</a>
+    <!-- Existing games -->
+    <a class="game-link" href="OrganelleMatching.html">Organelle Matching Game</a>
+    <a class="game-link" href="OrganelleMemory.html">Organelle Memory Game</a>
+    <a class="game-link" href="Hypothesis.html">Hypothesis Generator</a>
+  </main>
+  <footer>
+    &copy; 2025 Biology Class | Designed for ELL &amp; SIFE students
+  </footer>
 </body>
 </html>
