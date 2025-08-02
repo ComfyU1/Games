@@ -1,94 +1,128 @@
-/* Classic Warm-Up Style  •  extracted from index_v2.html  •  2025-08-02 */
+/* --------------------------------------------------------------------------
+   Biology Class – Daily Warm‑Up Games
+   External stylesheet that reproduces the exact look‑and‑feel and interactive
+   behaviour of the original inline‑styled HTML.
+   -------------------------------------------------------------------------- */
 
-:root{
-  --primary : #0077b6;  /* deep ocean blue */
-  --accent  : #90e0ef;  /* light cyan accent (unused but available) */
-  --bg      : #f8f9fa;  /* soft off-white page background */
-}
+:root {
+  /* Core colour palette */
+  --primary: #0077b6;      /* Main brand blue */
+  --primary-dark: #023e8a; /* Darker shade for hover states */
+  --accent: #90e0ef;       /* Light accent blue (reserved for future use) */
+  --bg: #f8f9fa;           /* Warm light grey background */
 
-/* ---- Reset / base ---- */
-*{
-  box-sizing:border-box;
-  font-family:Arial,Helvetica,sans-serif;
-}
-body{
-  margin:0;
-  background:var(--bg);
-  color:#212529;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  min-height:100vh;
+  /* Typography & base colours */
+  --text: #212529;         /* Default body text */
 }
 
-/* ---- Header ---- */
-header{
-  width:100%;
-  background:var(--primary);
-  color:#fff;
-  padding:18px 12px;
-  text-align:center;
-}
-header h1{
-  margin:0;
-  font-size:1.9rem;
-}
-header p{
-  margin:6px 0 0;
-  font-size:1rem;
+/* Global reset & defaults -------------------------------------------------- */
+* {
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-/* ---- Card grid ---- */
-main{
-  width:100%;
-  max-width:900px;
-  padding:24px;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:18px;
+body {
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh; /* Ensures footer sits at bottom */
 }
 
-/* ---- Individual card ---- */
-.card{
-  background:#fff;
-  border-radius:10px;
-  box-shadow:0 2px 4px rgba(0,0,0,.1);
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  transition:transform .2s;
-}
-.card:hover{ transform:translateY(-4px); }
-
-.card h2{
-  margin:12px 0 8px;
-  font-size:1.2rem;
-  color:var(--primary);
-}
-.card p{
-  margin:0 0 16px;
-  font-size:0.9rem;
-  text-align:center;
+/* --------------------------------------------------------------------------
+   Header
+   -------------------------------------------------------------------------- */
+header {
+  width: 100%;
+  background: var(--primary);
+  color: #fff;
+  padding: 18px 12px;
+  text-align: center;
 }
 
-/* ---- Play button ---- */
-.card a{
-  background:var(--primary);
-  color:#fff;
-  padding:10px 20px;
-  border-radius:6px;
-  text-decoration:none;
-  font-weight:bold;
-  transition:background .2s;
+header h1 {
+  font-size: 1.9rem;
+  font-weight: 700;
 }
-.card a:hover{ background:#023e8a; }  /* darker blue */
 
-/* ---- Footer ---- */
-footer{
-  margin-top:auto;
-  padding:14px;
-  font-size:0.8rem;
-  color:#868e96;
-  text-align:center;
+header p {
+  margin-top: 6px;
+  font-size: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   Main grid & cards
+   -------------------------------------------------------------------------- */
+main {
+  width: 100%;
+  max-width: 900px;
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card h2 {
+  margin: 12px 0 8px;
+  font-size: 1.2rem;
+  color: var(--primary);
+  text-align: center;
+}
+
+.card p {
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Play button -------------------------------------------------------------- */
+.card a {
+  background: var(--primary);
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.15s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.card a:hover,
+.card a:focus {
+  background: var(--primary-dark);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.card a:active {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Footer
+   -------------------------------------------------------------------------- */
+footer {
+  margin-top: auto; /* Pushes footer to the bottom when content is short */
+  padding: 14px;
+  font-size: 0.8rem;
+  color: #868e96;
+  text-align: center;
 }
