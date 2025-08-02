@@ -2,102 +2,20 @@
    — blue header + white cards + hovering lift + blue rounded buttons — */
 
 :root{
-  --primary : #0077b6;   /* deep ocean blue (header, titles, buttons) */
-  --primary-dark:#023e8a;/* darker blue on button hover               */
-  --bg      : #f8f9fa;   /* soft page background                      */
+  --primary:#0077b6;
+  --accent:#90e0ef;
+  --bg:#f8f9fa;
 }
-
-/* ---------- Base / reset ---------- */
-*{
-  box-sizing:border-box;
-  font-family:Arial,Helvetica,sans-serif;
-}
-body{
-  margin:0;
-  background:var(--bg);
-  color:#212529;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  min-height:100vh;
-}
-
-/* ---------- Header ---------- */
-header{
-  width:100%;
-  background:var(--primary);
-  color:#fff;
-  padding:18px 12px;
-  text-align:center;
-}
-h1{
-  margin:0;
-  font-size:1.9rem;
-}
-header p{
-  margin:6px 0 0;
-  font-size:1rem;
-}
-
-/* ---------- Card grid ---------- */
-main{
-  width:100%;
-  max-width:900px;
-  padding:24px;
-  display:grid;
-  gap:18px;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-}
-
-/* ---------- Individual card ---------- */
-.card{
-  background:#fff;
-  border:2px solid rgba(0,0,0,.05);           /* subtle outline */
-  border-radius:10px;
-  box-shadow:0 2px 4px rgba(0,0,0,.08);
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  text-align:center;
-  transition:transform .2s ease, box-shadow .2s ease;
-}
-.card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 4px 12px rgba(0,0,0,.15);
-}
-.card h2{
-  margin:12px 0 8px;
-  font-size:1.2rem;
-  color:var(--primary);
-}
-.card p{
-  margin:0 0 16px;
-  font-size:0.9rem;
-}
-
-/* ---------- Play button ---------- */
-.card a{
-  display:inline-block;
-  background:var(--primary);
-  color:#fff;
-  padding:10px 24px;
-  border-radius:6px;
-  text-decoration:none;
-  font-weight:bold;
-  transition:background .2s ease, transform .2s ease;
-}
-.card a:hover,
-.card a:focus{
-  background:var(--primary-dark);
-  transform:translateY(-2px);
-}
-
-/* ---------- Footer ---------- */
-footer{
-  margin-top:auto;
-  padding:14px;
-  font-size:0.8rem;
-  color:#868e96;
-  text-align:center;
-}
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+body{margin:0;background:var(--bg);color:#212529;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
+header{width:100%;background:var(--primary);color:#fff;padding:18px 12px;text-align:center;}
+h1{margin:0;font-size:1.9rem;}
+header p{margin:6px 0 0;font-size:1rem;}
+main{width:100%;max-width:900px;display:grid;gap:18px;padding:24px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+.card{background:#fff;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:20px;display:flex;flex-direction:column;align-items:center;transition:transform .2s;}
+.card:hover{transform:translateY(-4px);}
+.card h2{margin:12px 0 8px;font-size:1.2rem;color:var(--primary);}
+.card p{margin:0 0 16px;font-size:0.9rem;text-align:center;}
+.card a{background:var(--primary);color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;}
+.card a:hover{background:#023e8a;}
+footer{margin-top:auto;padding:14px;font-size:0.8rem;color:#868e96;text-align:center;}
