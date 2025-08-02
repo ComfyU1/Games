@@ -1,21 +1,135 @@
-/* Classic Warm-Up Games  •  extracted & perfected 2025-08-02
-   — blue header + white cards + hovering lift + blue rounded buttons — */
+/* Photon Grid Neon — extracted from Index.html (Aug 2025) */
 
 :root{
-  --primary:#0077b6;
-  --accent:#90e0ef;
-  --bg:#f8f9fa;
+  --neon-blue:#00E5FF;
+  --neon-pink:#FF2DA5;
+  --grid-line:#1F1F1F;
+  --bg-black:#0D0D0D;
 }
-*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
-body{margin:0;background:var(--bg);color:#212529;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
-header{width:100%;background:var(--primary);color:#fff;padding:18px 12px;text-align:center;}
-h1{margin:0;font-size:1.9rem;}
-header p{margin:6px 0 0;font-size:1rem;}
-main{width:100%;max-width:900px;display:grid;gap:18px;padding:24px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
-.card{background:#fff;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:20px;display:flex;flex-direction:column;align-items:center;transition:transform .2s;}
-.card:hover{transform:translateY(-4px);}
-.card h2{margin:12px 0 8px;font-size:1.2rem;color:var(--primary);}
-.card p{margin:0 0 16px;font-size:0.9rem;text-align:center;}
-.card a{background:var(--primary);color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;}
-.card a:hover{background:#023e8a;}
-footer{margin-top:auto;padding:14px;font-size:0.8rem;color:#868e96;text-align:center;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg-black);
+  color:#EAEAEA;
+  font-family:"Nunito Sans",system-ui,sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ---------- Grid background ---------- */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background-image:
+    repeating-linear-gradient(var(--grid-line) 0 1px,transparent 1px 60px),
+    repeating-linear-gradient(90deg,var(--grid-line) 0 1px,transparent 1px 60px);
+  animation:grid-move 40s linear infinite;
+  transform:rotateX(45deg);
+  z-index:-1;
+  pointer-events:none;
+}
+@keyframes grid-move{
+  from{transform:rotateX(45deg) translateY(0);}
+  to  {transform:rotateX(45deg) translateY(-60px);}
+}
+
+/* ---------- Header ---------- */
+header{
+  padding:3rem 1rem 2rem;
+  text-align:center;
+}
+header h1{
+  font-size:2.5rem;
+  font-weight:700;
+  letter-spacing:1px;
+  color:var(--neon-blue);
+  text-shadow:0 0 8px var(--neon-blue);
+}
+header p{
+  margin-top:.75rem;
+  font-size:1.15rem;
+  color:#ccc;
+  max-width:48ch;
+  margin-inline:auto;
+  line-height:1.4;
+}
+
+/* ---------- Card grid ---------- */
+main{
+  width:100%;
+  max-width:1024px;
+  margin:0 auto;
+  padding:1rem 1rem 3rem;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:2rem;
+}
+
+/* ---------- Game cards ---------- */
+.game-card{
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(3px);
+  padding:1.3rem 1.1rem 1.6rem;
+  border-radius:16px;
+  position:relative;
+  transition:transform .25s ease,box-shadow .25s ease;
+  min-height:180px;
+}
+.game-card:hover{
+  transform:translateY(-5px) scale(1.03);
+  box-shadow:0 10px 20px rgba(0,229,255,.35);
+}
+.game-card h3{
+  font-size:1.35rem;
+  color:var(--neon-pink);
+  text-shadow:0 0 6px var(--neon-pink);
+  margin-bottom:.35rem;
+}
+.game-card p{
+  font-size:1rem;
+  margin-bottom:.2rem;
+  color:#ddd;
+}
+
+/* ---------- Play button ---------- */
+.play-btn{
+  position:absolute;
+  bottom:1rem;
+  left:50%;
+  transform:translateX(-50%);
+  min-width:140px;
+  padding:.75rem 2rem;
+  font-size:1.05rem;
+  font-weight:700;
+  letter-spacing:.5px;
+  text-align:center;
+  text-decoration:none;
+  color:var(--neon-blue);
+  background:rgba(0,229,255,.12);
+  border:2px solid var(--neon-blue);
+  border-radius:10px;
+  transition:all .25s ease;
+}
+.play-btn:hover,
+.play-btn:focus{
+  background:var(--neon-blue);
+  color:var(--bg-black);
+  box-shadow:0 0 12px var(--neon-blue);
+}
+
+/* ---------- Footer ---------- */
+footer{
+  margin-top:auto;
+  padding:1.25rem 1rem;
+  text-align:center;
+  font-size:.95rem;
+  color:#999;
+  background:rgba(255,255,255,.03);
+  backdrop-filter:blur(3px);
+}
+
+/* ---------- Mobile tweak ---------- */
+@media(max-width:480px){
+  header h1{font-size:1.9rem;}
+}
