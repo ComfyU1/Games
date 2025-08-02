@@ -1,135 +1,99 @@
-/* Photon Grid Neon — extracted from Index.html (Aug 2025) */
+/* Classic Biology Warm-Up style (blue header + white cards)
+   Matches original design but targets .game-card / .play-btn classes   */
 
 :root{
-  --neon-blue:#00E5FF;
-  --neon-pink:#FF2DA5;
-  --grid-line:#1F1F1F;
-  --bg-black:#0D0D0D;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{
-  background:var(--bg-black);
-  color:#EAEAEA;
-  font-family:"Nunito Sans",system-ui,sans-serif;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
+  --primary : #0077b6;   /* deep ocean blue                              */
+  --primary-dk:#023e8a;  /* darker shade for hover state                 */
+  --accent  : #90e0ef;   /* light cyan accent (unused but available)     */
+  --bg      : #f8f9fa;   /* soft off-white page background               */
 }
 
-/* ---------- Grid background ---------- */
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background-image:
-    repeating-linear-gradient(var(--grid-line) 0 1px,transparent 1px 60px),
-    repeating-linear-gradient(90deg,var(--grid-line) 0 1px,transparent 1px 60px);
-  animation:grid-move 40s linear infinite;
-  transform:rotateX(45deg);
-  z-index:-1;
-  pointer-events:none;
-}
-@keyframes grid-move{
-  from{transform:rotateX(45deg) translateY(0);}
-  to  {transform:rotateX(45deg) translateY(-60px);}
+/* ---------- Reset / base ---------- */
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:#212529;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
 }
 
 /* ---------- Header ---------- */
 header{
-  padding:3rem 1rem 2rem;
+  width:100%;
+  background:var(--primary);
+  color:#fff;
+  padding:18px 12px;
   text-align:center;
 }
 header h1{
-  font-size:2.5rem;
-  font-weight:700;
-  letter-spacing:1px;
-  color:var(--neon-blue);
-  text-shadow:0 0 8px var(--neon-blue);
+  margin:0;
+  font-size:1.9rem;
 }
 header p{
-  margin-top:.75rem;
-  font-size:1.15rem;
-  color:#ccc;
-  max-width:48ch;
-  margin-inline:auto;
-  line-height:1.4;
+  margin:6px 0 0;
+  font-size:1rem;
 }
 
 /* ---------- Card grid ---------- */
 main{
   width:100%;
-  max-width:1024px;
-  margin:0 auto;
-  padding:1rem 1rem 3rem;
+  max-width:900px;
+  padding:24px;
   display:grid;
+  gap:18px;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:2rem;
 }
 
-/* ---------- Game cards ---------- */
+/* ---------- Game card ---------- */
 .game-card{
-  background:rgba(255,255,255,.05);
-  backdrop-filter:blur(3px);
-  padding:1.3rem 1.1rem 1.6rem;
-  border-radius:16px;
-  position:relative;
-  transition:transform .25s ease,box-shadow .25s ease;
-  min-height:180px;
+  background:#fff;
+  border-radius:10px;
+  box-shadow:0 2px 4px rgba(0,0,0,.1);
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  transition:transform .2s ease, box-shadow .2s ease;
 }
 .game-card:hover{
-  transform:translateY(-5px) scale(1.03);
-  box-shadow:0 10px 20px rgba(0,229,255,.35);
+  transform:translateY(-4px);
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
 }
 .game-card h3{
-  font-size:1.35rem;
-  color:var(--neon-pink);
-  text-shadow:0 0 6px var(--neon-pink);
-  margin-bottom:.35rem;
+  margin:12px 0 8px;
+  font-size:1.2rem;
+  color:var(--primary);
 }
 .game-card p{
-  font-size:1rem;
-  margin-bottom:.2rem;
-  color:#ddd;
+  margin:0 0 16px;
+  font-size:0.9rem;
 }
 
 /* ---------- Play button ---------- */
 .play-btn{
-  position:absolute;
-  bottom:1rem;
-  left:50%;
-  transform:translateX(-50%);
-  min-width:140px;
-  padding:.75rem 2rem;
-  font-size:1.05rem;
-  font-weight:700;
-  letter-spacing:.5px;
-  text-align:center;
+  background:var(--primary);
+  color:#fff;
+  padding:10px 20px;
+  border-radius:6px;
   text-decoration:none;
-  color:var(--neon-blue);
-  background:rgba(0,229,255,.12);
-  border:2px solid var(--neon-blue);
-  border-radius:10px;
-  transition:all .25s ease;
+  font-weight:bold;
+  transition:background .2s ease, transform .2s ease;
 }
 .play-btn:hover,
 .play-btn:focus{
-  background:var(--neon-blue);
-  color:var(--bg-black);
-  box-shadow:0 0 12px var(--neon-blue);
+  background:var(--primary-dk);
+  transform:translateY(-2px);
 }
 
 /* ---------- Footer ---------- */
 footer{
   margin-top:auto;
-  padding:1.25rem 1rem;
+  padding:14px;
+  font-size:0.8rem;
+  color:#868e96;
   text-align:center;
-  font-size:.95rem;
-  color:#999;
-  background:rgba(255,255,255,.03);
-  backdrop-filter:blur(3px);
-}
-
-/* ---------- Mobile tweak ---------- */
-@media(max-width:480px){
-  header h1{font-size:1.9rem;}
 }
