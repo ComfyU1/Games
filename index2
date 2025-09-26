@@ -1,0 +1,487 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+
+// Skittles‑Themed Tetris — single‑file React component
+// Controls: ← → to move, ↓ to soft‑drop, ↑ to rotate (CW), Z to rotate (CCW), Space to hard drop, P to pause, R to reset
+// Mobile: on‑screen controls provided
+// Grid: 10 x 20
+
+const COLS = 10;
+const ROWS = 20;
+const HIDDEN_ROWS = 2; // spawn buffer above the visible grid
+const TICK_BASE_MS = 900; // base speed in ms
+const SPEED_FACTOR = 0.85; // per level multiplier
+
+// Candy colors (Skittles vibe) — glossy with radial highlights
+const CANDY = {
+  R: { base: "#E21A2C", name: "Red" },
+  O: { base: "#FF6A13", name: "Orange" },
+  Y: { base: "#FFDD1B", name: "Yellow" },
+  G: { base: "#3CB44A", name: "Green" },
+  P: { base: "#6A1B9A", name: "Purple" },
+  B: { base: "#6E40C9", name: "Berry" }, // bonus variant for variety
+};
+
+// Tetromino definitions: matrices and themed color keys
+const TETROMINOES = {
+  I: { m: [[1,1,1,1]], color: "Y" },
+  O: { m: [[1,1],[1,1]], color: "R" },
+  T: { m: [[1,1,1],[0,1,0]], color: "P" },
+  S: { m: [[0,1,1],[1,1,0]], color: "G" },
+  Z: { m: [[1,1,0],[0,1,1]], color: "O" },
+  J: { m: [[1,0,0],[1,1,1]], color: "B" },
+  L: { m: [[0,0,1],[1,1,1]], color: "Y" },
+};
+
+const PIECE_KEYS = Object.keys(TETROMINOES);
+
+// Utility — rotate matrix clockwise
+function rotateCW(mat){
+  const R = mat.length, C = mat[0].length;
+  const res = Array.from({length:C},()=>Array(R).fill(0));
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++) res[c][R-1-r]=mat[r][c];
+  return res;
+}
+// Utility — rotate matrix counterclockwise
+function rotateCCW(mat){
+  const R = mat.length, C = mat[0].length;
+  const res = Array.from({length:C},()=>Array(R).fill(0));
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++) res[C-1-c][r]=mat[r][c];
+  return res;
+}
+
+function createEmptyBoard(){
+  return Array.from({length: ROWS + HIDDEN_ROWS}, () => Array(COLS).fill(null));
+}
+
+function randomBag(){
+  const bag = [...PIECE_KEYS];
+  for(let i=bag.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [bag[i], bag[j]] = [bag[j], bag[i]];
+  }
+  return bag;
+}
+
+function getDropInterval(level){
+  return Math.max(80, Math.floor(TICK_BASE_MS * Math.pow(SPEED_FACTOR, level)));
+}
+
+function candyCellStyle(colorKey){
+  const base = CANDY[colorKey]?.base || "#999";
+  return {
+    background: `radial-gradient(100% 100% at 30% 25%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.15) 18%, ${base} 36%, ${shade(base, -10)} 70%)`,
+    boxShadow: `inset 0 0 6px rgba(255,255,255,0.6), inset 0 -3px 6px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.3)`,
+  };
+}
+
+// Simple hex shade helper
+function shade(hex, percent){
+  const f = parseInt(hex.slice(1),16);
+  const t = percent<0?0:255;
+  const p = Math.abs(percent)/100;
+  const R = f>>16, G = f>>8&0x00FF, B = f&0x0000FF;
+  const to = (c)=>Math.round((t-c)*p)+c;
+  return `#${(0x1000000 + (to(R)<<16) + (to(G)<<8) + to(B)).toString(16).slice(1)}`;
+}
+
+function useInterval(callback, delay){
+  const savedRef = useRef(callback);
+  useEffect(()=>{ savedRef.current = callback; }, [callback]);
+  useEffect(()=>{
+    if(delay==null) return;
+    const id = setInterval(()=>savedRef.current(), delay);
+    return ()=>clearInterval(id);
+  }, [delay]);
+}
+
+function SkittlesCandy({colorKey}){
+  const s = candyCellStyle(colorKey);
+  return (
+    <div className="w-full h-full rounded-full flex items-center justify-center select-none" style={s}>
+      <span className="text-white font-black text-[10px] drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">S</span>
+    </div>
+  );
+}
+
+function Cell({ value }){
+  return (
+    <div className="border border-black/10 bg-neutral-900/60 backdrop-blur-sm rounded-md p-[2px]">
+      {value ? <SkittlesCandy colorKey={value}/> : (
+        <div className="w-full h-full rounded-md bg-neutral-800/50" />
+      )}
+    </div>
+  );
+}
+
+function Title(){
+  return (
+    <div className="flex items-center gap-3">
+      <div className="text-3xl md:text-4xl font-extrabold tracking-tight">Skittles Tetris</div>
+      <div className="text-sm md:text-base px-2 py-1 rounded-full bg-neutral-800/70 border border-white/10">Taste the <span className="font-bold">LINES</span> 🌈</div>
+    </div>
+  );
+}
+
+export default function App(){
+  const [board, setBoard] = useState(createEmptyBoard());
+  const [queue, setQueue] = useState(randomBag());
+  const [current, setCurrent] = useState(spawnPiece(randomBag()));
+  const [nextBag, setNextBag] = useState(randomBag());
+  const [score, setScore] = useState(0);
+  const [lines, setLines] = useState(0);
+  const [level, setLevel] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [softDropping, setSoftDropping] = useState(false);
+
+  function spawnPiece(bag){
+    const key = bag[0];
+    const rest = bag.slice(1);
+    const m = TETROMINOES[key].m;
+    const color = TETROMINOES[key].color;
+    const x = Math.floor((COLS - m[0].length)/2);
+    const y = 0; // spawn in hidden rows
+    return { key, m, x, y, color, rest };
+  }
+
+  // On mount, ensure we have a piece from queue
+  useEffect(()=>{
+    setCurrent(prev => prev?.key ? prev : spawnFromQueue());
+    // eslint-disable-next-line
+  }, []);
+
+  function spawnFromQueue(){
+    let q = queue;
+    if(q.length===0){ q = nextBag; setNextBag(randomBag()); }
+    const pieceKey = q[0];
+    const newQ = q.slice(1);
+    setQueue(newQ);
+    const m = TETROMINOES[pieceKey].m;
+    const color = TETROMINOES[pieceKey].color;
+    const x = Math.floor((COLS - m[0].length)/2);
+    const y = 0;
+    return { key: pieceKey, m, x, y, color };
+  }
+
+  const visibleBoard = useMemo(()=>board.slice(HIDDEN_ROWS), [board]);
+
+  function collide(b, piece){
+    const {m, x, y} = piece;
+    for(let r=0;r<m.length;r++){
+      for(let c=0;c<m[0].length;c++){
+        if(!m[r][c]) continue;
+        const nx = x + c;
+        const ny = y + r;
+        if(nx<0 || nx>=COLS || ny>=board.length) return true;
+        if(ny>=0 && b[ny][nx]) return true;
+      }
+    }
+    return false;
+  }
+
+  function merge(b, piece){
+    const copy = b.map(row=>row.slice());
+    const {m,x,y,color} = piece;
+    for(let r=0;r<m.length;r++){
+      for(let c=0;c<m[0].length;c++){
+        if(!m[r][c]) continue;
+        const nx = x+c, ny = y+r;
+        if(ny>=0) copy[ny][nx] = color;
+      }
+    }
+    return copy;
+  }
+
+  function clearLines(b){
+    const remain = b.filter(row => row.some(cell => !cell));
+    const cleared = b.length - remain.length;
+    const newBoard = Array.from({length: cleared}, ()=>Array(COLS).fill(null)).concat(remain);
+    return { newBoard, cleared };
+  }
+
+  function scoring(cleared, soft=false, hardDropDistance=0){
+    const base = [0, 100, 300, 500, 800][cleared] || 0;
+    const softBonus = soft ? 1 : 0;
+    const hardBonus = hardDropDistance * 2;
+    return base + softBonus + hardBonus + level*5;
+  }
+
+  function tryMove(dx, dy){
+    if(gameOver || paused) return;
+    const cand = {...current, x: current.x + dx, y: current.y + dy};
+    if(!collide(board, cand)) setCurrent(cand);
+  }
+
+  function tryRotate(dir){
+    if(gameOver || paused) return;
+    const rotated = {...current, m: dir>0?rotateCW(current.m):rotateCCW(current.m)};
+    // simple wall kicks: nudge left/right/up if needed
+    const kicks = [0, -1, 1, -2, 2];
+    for(const k of kicks){
+      const cand = {...rotated, x: current.x + k, y: current.y};
+      if(!collide(board, cand)){ setCurrent(cand); return; }
+    }
+    // try one up kick if overlapped
+    const upCand = {...rotated, x: current.x, y: current.y - 1};
+    if(!collide(board, upCand)) { setCurrent(upCand); return; }
+  }
+
+  function lockPiece(){
+    const merged = merge(board, current);
+    const { newBoard, cleared } = clearLines(merged);
+    if(current.y < HIDDEN_ROWS){
+      setGameOver(true);
+      setBoard(merged); // show loss state
+      return;
+    }
+    setBoard(newBoard);
+    if(cleared>0){
+      setLines(l=>{
+        const total = l+cleared;
+        if(Math.floor(total/10) > Math.floor(l/10)) setLevel(v=>v+1);
+        return total;
+      });
+      setScore(s=> s + scoring(cleared, softDropping));
+    }
+    setCurrent(spawnFromQueue());
+  }
+
+  function hardDrop(){
+    if(gameOver || paused) return;
+    let dist = 0;
+    let cand = {...current};
+    while(!collide(board, {...cand, y: cand.y+1})){
+      cand.y += 1; dist += 1;
+    }
+    setCurrent(cand);
+    setScore(s=> s + scoring(0, false, dist));
+    lockPiece();
+  }
+
+  function softDrop(on){
+    setSoftDropping(on);
+  }
+
+  useInterval(()=>{
+    if(gameOver || paused) return;
+    const cand = {...current, y: current.y + 1};
+    if(!collide(board, cand)){
+      setCurrent(cand);
+      if(softDropping) setScore(s=>s+1); // drip score for soft drop
+    } else {
+      lockPiece();
+    }
+  }, getDropInterval(level) * (softDropping?0.5:1));
+
+  // keyboard controls
+  useEffect(()=>{
+    const onKey = (e)=>{
+      if(["ArrowLeft","ArrowRight","ArrowDown","ArrowUp"," ","KeyZ","KeyP","KeyR"].includes(e.code)) e.preventDefault();
+      switch(e.code){
+        case "ArrowLeft": tryMove(-1,0); break;
+        case "ArrowRight": tryMove(1,0); break;
+        case "ArrowDown": softDrop(true); tryMove(0,1); break;
+        case "ArrowUp": tryRotate(1); break;
+        case "KeyZ": tryRotate(-1); break;
+        case "Space": hardDrop(); break;
+        case "KeyP": setPaused(p=>!p); break;
+        case "KeyR": reset(); break;
+        default: break;
+      }
+    };
+    const onKeyUp = (e)=>{ if(e.code==="ArrowDown") softDrop(false); };
+    window.addEventListener("keydown", onKey, { passive: false });
+    window.addEventListener("keyup", onKeyUp, { passive: false });
+    return ()=>{ window.removeEventListener("keydown", onKey); window.removeEventListener("keyup", onKeyUp); };
+  });
+
+  function reset(){
+    setBoard(createEmptyBoard());
+    setQueue(randomBag());
+    setNextBag(randomBag());
+    setCurrent(spawnFromQueue());
+    setScore(0); setLines(0); setLevel(0);
+    setGameOver(false); setPaused(false); setSoftDropping(false);
+  }
+
+  // ghost piece
+  const ghost = useMemo(()=>{
+    let g = {...current};
+    while(!collide(board, {...g, y: g.y+1})) g.y += 1;
+    return g;
+  }, [current, board]);
+
+  // render board with current and ghost
+  const displayBoard = useMemo(()=>{
+    const b = board.map(row=>row.slice());
+    // ghost overlay (lighter)
+    for(let r=0;r<ghost.m.length;r++) for(let c=0;c<ghost.m[0].length;c++){
+      if(!ghost.m[r][c]) continue; const nx = ghost.x+c, ny=ghost.y+r; if(ny>=0) b[ny][nx] = b[ny][nx] || "ghost";
+    }
+    // current piece
+    for(let r=0;r<current.m.length;r++) for(let c=0;c<current.m[0].length;c++){
+      if(!current.m[r][c]) continue; const nx = current.x+c, ny=current.y+r; if(ny>=0) b[ny][nx] = current.color;
+    }
+    return b.slice(HIDDEN_ROWS);
+  }, [board, current, ghost]);
+
+  const nextQueue = useMemo(()=>{
+    const combined = [...queue];
+    if(combined.length < 5) combined.push(...nextBag);
+    return combined.slice(0,5);
+  }, [queue, nextBag]);
+
+  return (
+    <div className="min-h-screen w-full bg-gradient-to-b from-fuchsia-900 via-rose-900 to-amber-900 text-white p-4 md:p-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-start gap-6">
+          <div className="md:w-2/3 w-full">
+            <Title />
+            <div className="mt-3 text-sm text-white/80">Move with arrows, rotate ↑/Z, hard drop Space. Pause P. Reset R.</div>
+
+            <div className="mt-4 grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr] gap-4 items-start">
+              {/* Board */}
+              <div className="rounded-2xl p-2 bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+                <div
+                  className="grid gap-1"
+                  style={{gridTemplateColumns: `repeat(${COLS}, minmax(0,1fr))`, width: "min(90vw, 420px)", aspectRatio: `${COLS}/${ROWS}`}}
+                >
+                  {displayBoard.flatMap((row, rIdx) => row.map((cell, cIdx) => (
+                    <div key={`${rIdx}-${cIdx}`} className="relative">
+                      {cell === "ghost" ? (
+                        <div className="w-full h-full rounded-md border-2 border-white/30 border-dashed" />
+                      ) : (
+                        <Cell value={cell} />
+                      )}
+                    </div>
+                  )))}
+                </div>
+              </div>
+
+              {/* Sidebar */}
+              <div className="flex flex-col gap-4">
+                <div className="rounded-2xl p-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+                  <div className="text-lg font-bold">Scoreboard</div>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                    <Stat label="Score" value={score} />
+                    <Stat label="Lines" value={lines} />
+                    <Stat label="Level" value={level} />
+                  </div>
+
+                  <div className="mt-4 text-sm text-white/80">Clear lines to level up and speed the candy rain! 🍬</div>
+                  <div className="mt-3 flex gap-2">
+                    <button className="rounded-xl px-3 py-2 bg-lime-500/80 hover:bg-lime-500 font-semibold" onClick={()=>setPaused(p=>!p)}>{paused?"Resume":"Pause"}</button>
+                    <button className="rounded-xl px-3 py-2 bg-rose-500/80 hover:bg-rose-500 font-semibold" onClick={reset}>Reset</button>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl p-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+                  <div className="text-lg font-bold mb-2">Next Up</div>
+                  <div className="grid grid-cols-5 gap-2">
+                    {nextQueue.map((k, i) => (
+                      <MiniPiece key={i} pieceKey={k} />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl p-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+                  <div className="text-lg font-bold mb-2">Mobile Controls</div>
+                  <div className="grid grid-cols-5 gap-2">
+                    <ControlButton onClick={()=>tryRotate(-1)}>↶</ControlButton>
+                    <ControlButton onClick={()=>tryMove(-1,0)}>←</ControlButton>
+                    <ControlButton onMouseDown={()=>softDrop(true)} onMouseUp={()=>softDrop(false)} onTouchStart={()=>softDrop(true)} onTouchEnd={()=>softDrop(false)}>↓</ControlButton>
+                    <ControlButton onClick={()=>tryMove(1,0)}>→</ControlButton>
+                    <ControlButton onClick={()=>tryRotate(1)}>↷</ControlButton>
+                    <ControlButton wide onClick={hardDrop}>HARD DROP</ControlButton>
+                  </div>
+                </div>
+
+                <FlavorLegend />
+              </div>
+            </div>
+
+            {gameOver && (
+              <div className="mt-4 p-4 rounded-2xl bg-red-600/30 border border-red-300/30">
+                <div className="text-xl font-bold">Game Over</div>
+                <div className="text-white/90">You stacked the rainbow! Final score: <span className="font-bold">{score}</span>. Press <span className="font-bold">R</span> to play again.</div>
+              </div>
+            )}
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({label, value}){
+  return (
+    <div className="rounded-xl p-3 bg-black/40 border border-white/10">
+      <div className="text-xs uppercase tracking-wide text-white/70">{label}</div>
+      <div className="text-2xl font-extrabold tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function ControlButton({children, onClick, onMouseDown, onMouseUp, onTouchStart, onTouchEnd, wide}){
+  return (
+    <button
+      className={`rounded-xl ${wide?"col-span-5":""} px-3 py-2 bg-neutral-900/70 hover:bg-neutral-800 border border-white/10 shadow-lg active:translate-y-[1px]`}
+      onClick={onClick}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >{children}</button>
+  );
+}
+
+function MiniPiece({ pieceKey }){
+  const t = TETROMINOES[pieceKey];
+  const rows = 4, cols = 4; // fixed preview grid
+  const m = normalizeTo4x4(t.m);
+  return (
+    <div className="w-20 h-20 bg-black/30 rounded-xl p-2 grid" style={{gridTemplateColumns:`repeat(${cols},1fr)`, gap: 4}}>
+      {m.flatMap((row, r) => row.map((v, c) => (
+        <div key={`${r}-${c}`} className="rounded-md bg-black/20">
+          {v ? <SkittlesCandy colorKey={t.color}/> : null}
+        </div>
+      )))}
+    </div>
+  );
+}
+
+function normalizeTo4x4(m){
+  const rows = 4, cols = 4;
+  const R = m.length, C = m[0].length;
+  const out = Array.from({length:rows},()=>Array(cols).fill(0));
+  const yOff = Math.floor((rows - R)/2);
+  const xOff = Math.floor((cols - C)/2);
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++) out[yOff+r][xOff+c] = m[r][c];
+  return out;
+}
+
+function FlavorLegend(){
+  const flavors = [
+    {k:"R", label:"Cherry"},
+    {k:"O", label:"Orange"},
+    {k:"Y", label:"Lemon"},
+    {k:"G", label:"Green Apple"},
+    {k:"P", label:"Grape"},
+    {k:"B", label:"Berry"},
+  ];
+  return (
+    <div className="rounded-2xl p-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+      <div className="text-lg font-bold mb-2">Flavor Queue</div>
+      <div className="grid grid-cols-3 gap-2">
+        {flavors.map(f=> (
+          <div key={f.k} className="flex items-center gap-2 bg-black/30 rounded-xl p-2">
+            <div className="w-6 h-6"><SkittlesCandy colorKey={f.k}/></div>
+            <div className="text-sm">{f.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
