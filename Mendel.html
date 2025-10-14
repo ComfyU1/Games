@@ -1,0 +1,335 @@
+import React, { useMemo, useState } from "react";
+
+// Mendel’s Pea Garden — single-file React app
+// Notes for the teacher:
+// - No use of the words “dominant/recessive” in the UI. Traits are shown only by seed color.
+// - Start by dragging seeds from the Seed Tray into the two P-generation slots, then press Grow (F1).
+// - Next, drag any two F1 seeds into the F1 cross slots and press Grow Field (F2) to see the 3:1 color pattern emerge from many offspring.
+// - If you cross different pure lines (yellow × green), F1 seeds look the same; F2 shows ~1/4 green at random.
+
+// --- Genetics helpers ---
+const makeGametes = (genotype) => {
+  // genotype is one of: 'YY', 'Yy', 'yy'
+  if (!genotype) return [];
+  const sorted = genotype.split("").sort().join("");
+  if (sorted === "YY") return ["Y"]; // pure yellow line
+  if (sorted === "yy") return ["y"]; // pure green line
+  return ["Y", "y"]; // hybrid
+};
+
+const combineGametesRandom = (gA, gB) => {
+  // Choose a random gamete from each parent
+  const a = gA[Math.floor(Math.random() * gA.length)];
+  const b = gB[Math.floor(Math.random() * gB.length)];
+  const child = [a, b].sort().join(""); // canonicalize to 'YY','Yy','yy'
+  return child;
+};
+
+const seedColor = (genotype) => {
+  // Yellow if it contains at least one 'Y'; green if 'yy'.
+  if (!genotype) return "#ccc";
+  return genotype.includes("Y") ? "#f3d347" : "#2f7f3c";
+};
+
+const niceLabel = (genotype) => {
+  if (!genotype) return "?";
+  // Keep labels subtle—no terms, just genotype initials for teacher use.
+  return genotype;
+};
+
+// --- UI helpers ---
+const Seed = ({ genotype, draggable = true, onDragStart, size = 36, selected = false, onClick }) => {
+  const color = seedColor(genotype);
+  return (
+    <div
+      className={`relative rounded-full border shadow-sm cursor-${draggable ? "grab" : "default"} transition-transform hover:scale-[1.04] ${
+        selected ? "ring-2 ring-black/60" : ""
+      }`}
+      style={{ width: size, height: size, background: color, borderColor: "#1116" }}
+      draggable={draggable}
+      onDragStart={(e) => onDragStart && onDragStart(e, genotype)}
+      onClick={onClick}
+      title={`Seed (${niceLabel(genotype)})`}
+    />
+  );
+};
+
+const DropSlot = ({ label, genotype, onDropGenotype, onClear }) => {
+  const [isOver, setIsOver] = useState(false);
+  return (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsOver(true);
+      }}
+      onDragLeave={() => setIsOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsOver(false);
+        const data = e.dataTransfer.getData("text/plain");
+        if (data) onDropGenotype(data);
+      }}
+      className={`flex flex-col items-center justify-center gap-2 rounded-2xl border-2 p-4 w-40 h-40 text-center transition ${
+        isOver ? "border-black/70 bg-black/[0.03]" : "border-black/15 bg-white"
+      }`}
+    >
+      <div className="text-sm text-black/70">{label}</div>
+      {genotype ? (
+        <Seed genotype={genotype} draggable={false} size={48} />
+      ) : (
+        <div className="text-xs text-black/40">Drop seed here</div>
+      )}
+      {genotype && (
+        <button
+          onClick={onClear}
+          className="text-xs text-black/60 underline hover:text-black"
+        >
+          remove
+        </button>
+      )}
+    </div>
+  );
+};
+
+const Plant = ({ label }) => (
+  <div className="flex flex-col items-center gap-1">
+    <div className="text-4xl" aria-hidden>
+      🌱
+    </div>
+    <div className="text-xs text-black/60">{label}</div>
+  </div>
+);
+
+const StatPill = ({ label, value }) => (
+  <div className="px-3 py-1 rounded-full bg-black/5 text-sm text-black/80 border border-black/10">
+    {label}: <span className="font-semibold">{value}</span>
+  </div>
+);
+
+export default function MendelsPeaGarden() {
+  // P cross (parents user drags from tray)
+  const [pA, setPA] = useState(null);
+  const [pB, setPB] = useState(null);
+  const [f1Seeds, setF1Seeds] = useState([]);
+  const [showPlants, setShowPlants] = useState(false);
+
+  // F1 cross (choose two F1 seeds to make a field for F2)
+  const [f1A, setF1A] = useState(null);
+  const [f1B, setF1B] = useState(null);
+  const [f2Seeds, setF2Seeds] = useState([]);
+
+  // Drag helpers
+  const handleDragStart = (e, genotype) => {
+    e.dataTransfer.setData("text/plain", genotype);
+  };
+
+  // Seed tray: two pure lines
+  const traySeeds = [
+    { label: "Yellow line (pure)", genotype: "YY" },
+    { label: "Green line (pure)", genotype: "yy" },
+  ];
+
+  const canGrowF1 = Boolean(pA && pB);
+  const canGrowF2 = Boolean(f1A && f1B);
+
+  const growF1 = () => {
+    if (!canGrowF1) return;
+    // simulate 8 offspring to make selection feel real
+    const gA = makeGametes(pA);
+    const gB = makeGametes(pB);
+    const kids = Array.from({ length: 8 }, () => combineGametesRandom(gA, gB));
+    setF1Seeds(kids);
+    setShowPlants(true);
+    // reset downstream
+    setF1A(null);
+    setF1B(null);
+    setF2Seeds([]);
+  };
+
+  const growF2 = () => {
+    if (!canGrowF2) return;
+    const gA = makeGametes(f1A);
+    const gB = makeGametes(f1B);
+    const n = 64; // make a field
+    const field = Array.from({ length: n }, () => combineGametesRandom(gA, gB));
+    setF2Seeds(field);
+  };
+
+  const f1Stats = useMemo(() => {
+    const counts = { YY: 0, Yy: 0, yy: 0 };
+    f1Seeds.forEach((g) => (counts[g] = (counts[g] || 0) + 1));
+    const yellow = f1Seeds.filter((g) => g.includes("Y")).length;
+    const green = f1Seeds.length - yellow;
+    return { ...counts, yellow, green, total: f1Seeds.length };
+  }, [f1Seeds]);
+
+  const f2Stats = useMemo(() => {
+    const counts = { YY: 0, Yy: 0, yy: 0 };
+    f2Seeds.forEach((g) => (counts[g] = (counts[g] || 0) + 1));
+    const yellow = f2Seeds.filter((g) => g.includes("Y")).length;
+    const green = f2Seeds.length - yellow;
+    const ratio = f2Seeds.length
+      ? `${yellow}:${green}`
+      : "-";
+    const greenPct = f2Seeds.length
+      ? Math.round((green / f2Seeds.length) * 100)
+      : 0;
+    return { ...counts, yellow, green, total: f2Seeds.length, ratio, greenPct };
+  }, [f2Seeds]);
+
+  const resetAll = () => {
+    setPA(null);
+    setPB(null);
+    setF1Seeds([]);
+    setShowPlants(false);
+    setF1A(null);
+    setF1B(null);
+    setF2Seeds([]);
+  };
+
+  return (
+    <div className="w-full min-h-screen bg-gradient-to-b from-emerald-50 to-amber-50 text-black p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <header className="flex items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+              Mendel’s Pea Garden
+            </h1>
+            <p className="text-black/70 mt-1 max-w-[70ch]">
+              Drag two seeds into the P-generation slots and press <span className="font-semibold">Grow (F1)</span>.
+              Then pick any two F1 seeds and press <span className="font-semibold">Grow Field (F2)</span> to see the pattern across many seeds.
+              Colors show what you’d see in the pods: yellow or green.
+            </p>
+          </div>
+          <button
+            onClick={resetAll}
+            className="px-4 py-2 rounded-xl bg-black text-white text-sm shadow hover:shadow-md active:scale-[0.98]"
+          >
+            Reset
+          </button>
+        </header>
+
+        {/* Seed Tray */}
+        <section className="grid md:grid-cols-2 gap-6">
+          <div className="rounded-2xl border bg-white p-4 shadow-sm">
+            <h2 className="text-xl font-semibold">Seed Tray</h2>
+            <div className="mt-2 text-sm text-black/70">Drag from here</div>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {traySeeds.map((t) => (
+                <div key={t.label} className="flex items-center gap-3 rounded-xl border p-3">
+                  <Seed genotype={t.genotype} onDragStart={handleDragStart} />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium">{t.label}</div>
+                    <div className="text-xs text-black/50">Genotype: {t.genotype}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* P-generation Cross */}
+          <div className="rounded-2xl border bg-white p-4 shadow-sm">
+            <h2 className="text-xl font-semibold">P Generation (Choose Parents)</h2>
+            <div className="mt-3 flex items-center gap-4">
+              <DropSlot label="Parent A" genotype={pA} onDropGenotype={setPA} onClear={() => setPA(null)} />
+              <div className="text-2xl" aria-hidden>×</div>
+              <DropSlot label="Parent B" genotype={pB} onDropGenotype={setPB} onClear={() => setPB(null)} />
+              <div className="flex-1 flex justify-end">
+                <button
+                  disabled={!canGrowF1}
+                  onClick={growF1}
+                  className={`px-4 py-2 rounded-xl text-sm shadow ${
+                    canGrowF1 ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-black/10 text-black/40 cursor-not-allowed"
+                  }`}
+                >
+                  Grow (F1)
+                </button>
+              </div>
+            </div>
+
+            {/* Plants appear after grow */}
+            {showPlants && (
+              <div className="mt-4 flex items-center gap-8">
+                <Plant label="Plant A" />
+                <Plant label="Plant B" />
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* F1 offspring */}
+        {f1Seeds.length > 0 && (
+          <section className="rounded-2xl border bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">F1 Seeds</h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <StatPill label="Total" value={f1Stats.total} />
+                <StatPill label="Yellow" value={f1Stats.yellow} />
+                <StatPill label="Green" value={f1Stats.green} />
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-8 gap-3 sm:gap-4">
+              {f1Seeds.map((g, i) => (
+                <div key={`f1-${i}`} className="flex flex-col items-center gap-1">
+                  <Seed genotype={g} onDragStart={handleDragStart} />
+                  <div className="text-[10px] text-black/50">{niceLabel(g)}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* F1 cross picker */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold">Choose any two F1 seeds to cross</h3>
+              <div className="mt-3 flex items-center gap-4">
+                <DropSlot label="F1 Parent A" genotype={f1A} onDropGenotype={setF1A} onClear={() => setF1A(null)} />
+                <div className="text-2xl" aria-hidden>×</div>
+                <DropSlot label="F1 Parent B" genotype={f1B} onDropGenotype={setF1B} onClear={() => setF1B(null)} />
+                <div className="flex-1 flex justify-end">
+                  <button
+                    disabled={!canGrowF2}
+                    onClick={growF2}
+                    className={`px-4 py-2 rounded-xl text-sm shadow ${
+                      canGrowF2 ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-black/10 text-black/40 cursor-not-allowed"
+                    }`}
+                  >
+                    Grow Field (F2)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* F2 field */}
+        {f2Seeds.length > 0 && (
+          <section className="rounded-2xl border bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">F2 Field</h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <StatPill label="Total" value={f2Stats.total} />
+                <StatPill label="Yellow" value={f2Stats.yellow} />
+                <StatPill label="Green" value={`${f2Stats.green} (${f2Stats.greenPct}%)`} />
+                <StatPill label="Yellow:Green" value={f2Stats.ratio} />
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-8 sm:grid-cols-12 md:grid-cols-16 gap-2">
+              {f2Seeds.map((g, i) => (
+                <Seed key={`f2-${i}`} genotype={g} draggable={false} size={18} />
+              ))}
+            </div>
+
+            <p className="mt-4 text-sm text-black/70">
+              This large field shows how colors appear in many offspring from the two chosen F1 seeds. Try different parent combinations at the top and compare what happens.
+            </p>
+          </section>
+        )}
+
+        <footer className="pt-2 pb-6 text-xs text-black/50">
+          Built for classroom use: simple visuals, drag–drop crosses, and random seed outcomes to echo real garden variation.
+        </footer>
+      </div>
+    </div>
+  );
+}
